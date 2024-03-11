@@ -1,18 +1,16 @@
 package restaurant.backend.services
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
+import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.db.entities.OrderDishEntity
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicInteger
 
 class OrderTask(private val order: OrderEntity, private val scheduler: OrderScheduler) {
     private val cookingDishes = ConcurrentHashMap<DishTask, Job>(order.dishes.size)
     private var readyDishesCount = AtomicInteger()
+    private var totalDishesCount = AtomicInteger()
     val dishesTasks = ArrayList<DishTask>(order.dishes.size)
 
     init {
@@ -26,12 +24,27 @@ class OrderTask(private val order: OrderEntity, private val scheduler: OrderSche
                                          priority = 5))   
             }
         }
+        totalDishesCount.getAndAdd(order.dishes.size)
     }
 
-    val orderId: Int = order.orderId!!
-    fun readyDishes(): Int = readyDishesCount.get() 
-    fun totalDishes(): Int = dishesTasks.size
-    fun ready(): Boolean = readyDishes() == totalDishes()
+    val orderId: Int = order.orderId
+    fun readyDishesCount(): Int = readyDishesCount.get()
+    fun totalDishesCount(): Int = totalDishesCount.get()
+    fun ready(): Boolean = readyDishesCount() == totalDishesCount()
+
+    fun addDishes(dish: DishEntity, addingCount: Int): ArrayList<DishTask> {
+        assert(addingCount > 0)
+        // Prevent ready() from becoming true while adding new dishes
+        totalDishesCount.getAndAdd(addingCount)
+        val dishId: Int = dish.dishId
+        val cookTime: Long = dish.cookTime
+        val newDishesTasks = ArrayList<DishTask>(addingCount)
+        repeat(addingCount) {
+            newDishesTasks.add(DishTask(dishId = dishId, cookTime = cookTime, orderTask = this, priority = 5))
+        }
+        dishesTasks.addAll(newDishesTasks)
+        return newDishesTasks
+    }
 
     fun onDishStartedCooking(dishTask: DishTask, cookingJob: Job) {
         cookingDishes[dishTask] = cookingJob

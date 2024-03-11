@@ -12,7 +12,7 @@ data class DishEntity (
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false, fetch = FetchType.EAGER)
     @Column(name = "dish_id", unique = true, nullable = false, updatable = false)
-    var dishId: Int? = null,
+    var dishId: Int = -1,
     
     @Basic(optional = false)
     @Column(name = "name", unique = true, nullable = false)

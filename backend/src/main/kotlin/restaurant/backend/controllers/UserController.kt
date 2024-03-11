@@ -5,28 +5,20 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import restaurant.backend.services.UserService
 import restaurant.backend.dto.UserDto
-import java.util.Optional
 
 @RestController
 @RequestMapping("users")
-class UserController(val service: UserService) {
-    companion object {
-        private inline fun <reified T> fromOptional(item: Optional<T>): ResponseEntity<T> {
-            return if (item.isPresent)
-                ResponseEntity.ok(item.get())
-            else
-                ResponseEntity.notFound().build()
-        }
-    }
+class UserController(val service: UserService) : ControllerHelper() {
+    @GetMapping("/get/byid/{id}")
+    fun getUserById(@PathVariable("id") userId: Int) : ResponseEntity<UserDto> = responseFromNullable(service.retrieveUserById(userId))
 
-    @GetMapping("/get/{id}")
-    fun getUserById(@PathVariable("id") userId: Int) : ResponseEntity<UserDto> = fromOptional(service.retrieveUserById(userId))
-    
-    @GetMapping("/get")
+    @GetMapping("/get/bylogin/{login}")
+    fun getUserByLogin(@PathVariable("login") login: String) : ResponseEntity<UserDto> = responseFromNullable(service.retrieveUserByLogin(login))
+
+    @GetMapping("/get/all")
     fun getUsers() : ResponseEntity<List<UserDto>> = ResponseEntity.ok(service.retrieveAll())
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
-    fun addUser(@RequestBody user: UserDto) : ResponseEntity<Boolean>
-        = ResponseEntity.ok(service.addUser(user))
+    fun addUser(@RequestBody user: UserDto) : ResponseEntity<String> = responseFromAddedId(service.addUser(user))
 }

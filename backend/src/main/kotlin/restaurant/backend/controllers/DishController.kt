@@ -4,24 +4,24 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import restaurant.backend.dto.DishDto
 import restaurant.backend.services.DishService
 
 @RestController
 @RequestMapping("dishes")
 class DishController(private val dishService: DishService) : ControllerHelper() {
-    @GetMapping("/get")
+    @GetMapping("/get/all")
     fun getDishes(): ResponseEntity<List<DishDto>> {
         return ResponseEntity.ok(dishService.retrieveAllDishes())
     }
-    
+
+    @GetMapping("/get/byid/{id}")
+    fun getDishById(@PathVariable("id") dishId: Int): ResponseEntity<DishDto> = responseFromNullable(dishService.retrieveDishById(dishId))
+
+    @GetMapping("/get/byname/{name}")
+    fun getDishByName(@PathVariable("name") dishName: String): ResponseEntity<DishDto> = responseFromNullable(dishService.retrieveDishByString(dishName))
+
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
     fun addDish(@RequestBody dish: DishDto): ResponseEntity<String> {

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.transaction.annotation.Transactional
 import restaurant.backend.db.entities.OrderDishEntity
 import restaurant.backend.db.entities.OrderEntity
+import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDishDto
 import restaurant.backend.dto.OrderDto
 
@@ -52,5 +53,24 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
         }
 
         return orderEntity
+    }
+
+    @Modifying
+    @Transactional(rollbackFor = [Throwable::class])
+    override fun addDishToOrder(orderAddDishDto: OrderAddDishDto): OrderEntity? {
+        val addingCount: Int = orderAddDishDto.addingCount
+        val dishId: Int = orderAddDishDto.dishId
+        val orderId: Int = orderAddDishDto.orderId
+        if (addingCount <= 0) {
+            return null
+        }
+
+        return entityManager.createNativeQuery("""
+            UPDATE dishes SET quantity = quantity - $addingCount WHERE dish_id = $dishId;
+            INSERT INTO order_dishes(order_id, dish_id, ordered_count)
+            VALUES ($orderId, $dishId, $addingCount)
+            ON CONFLICT DO UPDATE SET ordered_count = ordered_count + excluded.adding_count;
+            UPDATE orders SET is_ready = FALSE WHERE order_id = $orderId RETURNING *;
+            """.trimIndent(), OrderEntity::class.java).singleResult as OrderEntity
     }
 }

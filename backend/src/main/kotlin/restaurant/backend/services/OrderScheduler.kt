@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Lazy
 import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.db.entities.OrderDishEntity
+import restaurant.backend.dto.OrderAddDishDto
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.PriorityBlockingQueue
@@ -26,7 +27,7 @@ const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
 @Service
 class OrderScheduler @Autowired constructor(private val orderRepository: OrderRepository, @Lazy private val orderService: OrderService) {
     companion object {
-        private val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(DishService::class.java)
+        private val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(OrderScheduler::class.java)
     }
 
     private val cookingThreads = ArrayList<Thread>(MAX_COOKING_DISHES_PER_ONE_TIME)
@@ -39,7 +40,7 @@ class OrderScheduler @Autowired constructor(private val orderRepository: OrderRe
                     val cookedOrderTask: OrderTask = cookedOrdersChannel.receive()
                     assert(cookedOrderTask.ready())
                     val orderId: Int = cookedOrderTask.orderId
-                    if (cookingOrders.remove(orderId)!!.totalDishes() != cookedOrderTask.totalDishes()) {
+                    if (cookingOrders.remove(orderId) == null) {
                         logger.error("Incorrect order task in cookedOrderHandleThread: $orderId")
                     }
 
@@ -89,7 +90,15 @@ class OrderScheduler @Autowired constructor(private val orderRepository: OrderRe
             logger.info("[>>>] ADDING DISH TASK ${dishTask.dishId}\n")
             dishTasks.offer(dishTask)
         }
-        cookingOrders[order.orderId!!] = orderTask
+        cookingOrders[order.orderId] = orderTask
+    }
+
+    fun addDishesToOrder(dishEntity: DishEntity, orderAddDishDto: OrderAddDishDto) {
+        val orderTask: OrderTask = cookingOrders[orderAddDishDto.orderId]!!
+        val newDishTasks: ArrayList<DishTask> = orderTask.addDishes(dishEntity, orderAddDishDto.addingCount)
+        for (dishTask: DishTask in newDishTasks) {
+            dishTasks.offer(dishTask)
+        }
     }
 
     final suspend fun cancelDishCooking(dish: OrderDishEntity) {

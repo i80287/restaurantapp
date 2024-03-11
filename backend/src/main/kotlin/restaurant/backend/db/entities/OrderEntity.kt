@@ -14,7 +14,7 @@ data class OrderEntity (
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false, fetch = FetchType.EAGER)
     @Column(name = "order_id")
-    var orderId: Int? = null,
+    var orderId: Int = 0,
 
     @Column(name = "user_id", nullable = false)
     var userId: Int,
