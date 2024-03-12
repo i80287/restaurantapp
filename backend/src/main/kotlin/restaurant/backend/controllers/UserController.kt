@@ -20,5 +20,5 @@ class UserController(val service: UserService) : ControllerHelper() {
 
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
-    fun addUser(@RequestBody user: UserDto) : ResponseEntity<UserDto> = responseFromNullable(service.addUser(user))
+    fun addUser(@RequestBody user: UserDto) : ResponseEntity<String> = responseFromAddedId(service.tryAddUser(user))
 }

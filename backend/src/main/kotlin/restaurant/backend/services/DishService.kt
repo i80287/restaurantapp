@@ -1,24 +1,20 @@
 package restaurant.backend.services
 
 import jakarta.transaction.Transactional
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.repository.DishRepository
 import restaurant.backend.dto.DishDto
+import restaurant.backend.util.LoggingHelper
 import java.lang.Exception
 import java.util.*
 
 @Service
 class DishService(private val dishRepository: DishRepository)
-        : ServiceHelper<DishService>(DishService::class.java) {
+        : LoggingHelper<DishService>(DishService::class.java) {
     fun tryAddDish(dishDto: DishDto): Int? = try {
-        dishRepository.save(
-            DishEntity(
-                name = dishDto.name,
-                quantity = dishDto.quantity,
-                cookTime = dishDto.cookTime
-            )
-        ).dishId
+        dishRepository.save(dishDto.toDishWithoutId()).dishId
     } catch (ex: Throwable) {
         debugLogOnIncorrectData(dishDto, "DishService::tryAddDish(DishDto)", ex)
         null
@@ -41,4 +37,10 @@ class DishService(private val dishRepository: DishRepository)
             null -> null
             else -> DishDto(dishEntity)
         }
+
+    fun deleteDish(dishId: Int): DishDto? {
+        val dishDto = DishDto(dishRepository.findByIdOrNull(dishId) ?: return null)
+        dishRepository.deleteById(dishId)
+        return dishDto
+    }
 }

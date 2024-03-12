@@ -23,8 +23,8 @@ class DishController(private val dishService: DishService) : ControllerHelper() 
     fun getDishByName(@PathVariable("name") dishName: String): ResponseEntity<DishDto> = responseFromNullable(dishService.retrieveDishByString(dishName))
 
     @PostMapping("/add")
-    @ResponseStatus(HttpStatus.CREATED)
-    fun addDish(@RequestBody dish: DishDto): ResponseEntity<String> {
-        return responseFromAddedId(dishService.tryAddDish(dish))
-    }
+    fun addDish(@RequestBody dish: DishDto): ResponseEntity<String> = responseFromAddedId(dishService.tryAddDish(dish))
+
+    @DeleteMapping("/delete/{id}")
+    fun deleteDish(@PathVariable("id") dishId: Int): ResponseEntity<DishDto> = responseFromNullable(dishService.deleteDish(dishId))
 }

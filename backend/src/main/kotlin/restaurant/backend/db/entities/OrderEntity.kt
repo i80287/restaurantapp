@@ -2,9 +2,6 @@ package restaurant.backend.db.entities
 
 import jakarta.persistence.*
 import lombok.NoArgsConstructor
-import org.hibernate.annotations.OnDelete
-import org.hibernate.annotations.OnDeleteAction
-import kotlin.jvm.Transient
 
 @Entity
 @Table(name = "orders")
@@ -14,13 +11,16 @@ data class OrderEntity (
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false, fetch = FetchType.EAGER)
     @Column(name = "order_id")
-    var orderId: Int = 0,
+    var orderId: Int? = null,
 
     @Column(name = "user_id", nullable = false)
     var userId: Int,
 
     @Column(name = "start_time", nullable = false)
     var startTime: Long = System.currentTimeMillis(),
+
+    @Column(name = "started_cooking", nullable = false, updatable = true)
+    var startedCooking: Boolean = false,
 
     @Column(name = "is_ready", nullable = false, updatable = true)
     var isReady: Boolean = false,
@@ -31,4 +31,8 @@ data class OrderEntity (
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
     var user: UserEntity? = null
-)
+) {
+    override fun toString(): String {
+        return "OrderEntity(orderId=$orderId,userId=$userId,startTime=$startTime,startedCooking=$startedCooking,isReady=$isReady,dishes=${dishes.size},user=${user})"
+    }
+}

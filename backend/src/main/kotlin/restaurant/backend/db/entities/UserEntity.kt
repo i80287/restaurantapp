@@ -11,7 +11,7 @@ data class UserEntity (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    val userId: Int = 0,
+    val userId: Int? = null,
 
     @Basic(optional = false)
     @Column(name = "login", unique = true, nullable = false)
@@ -27,4 +27,8 @@ data class UserEntity (
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     val orders: MutableList<OrderEntity> = mutableListOf()
-)
+) {
+    override fun toString(): String {
+        return "UserEntity(userId=$userId,login=$login,passwordHash=$passwordHash,isAdmin=$isAdmin,orders=${orders.size})"
+    }
+}

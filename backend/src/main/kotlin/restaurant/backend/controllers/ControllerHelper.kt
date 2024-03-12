@@ -9,8 +9,8 @@ open class ControllerHelper {
         @JvmStatic
         protected inline fun <reified T> responseFromAddedId(addedItemId: T): ResponseEntity<String> =
             when (addedItemId) {
-                null -> ResponseEntity<String>("incorrect request body", HttpStatus.BAD_REQUEST)
-                else -> ResponseEntity<String>("new id: $addedItemId", HttpStatus.OK)
+                null -> ResponseEntity<String>("could not add: incorrect data", HttpStatus.BAD_REQUEST)
+                else -> ResponseEntity<String>("new id: $addedItemId", HttpStatus.CREATED)
             }
 
         @JvmStatic
@@ -18,6 +18,13 @@ open class ControllerHelper {
             when (status) {
                 true -> ResponseEntity.ok("success")
                 false -> ResponseEntity.badRequest().build()
+            }
+
+        @JvmStatic
+        protected fun responseFromBoolStatus(status: Boolean, falseMessage: String): ResponseEntity<String> =
+            when (status) {
+                true -> ResponseEntity.ok("success")
+                false -> ResponseEntity.badRequest().body(falseMessage)
             }
 
         @JvmStatic

@@ -12,7 +12,13 @@ import restaurant.backend.db.entities.OrderEntity
 interface OrderRepository : JpaRepository<OrderEntity, Int>, CustomOrderRepository {
     @Transactional
     @Modifying
-    @Query(value = "UPDATE orders SET is_ready = TRUE where order_id = :orderId",
+    @Query(value = "UPDATE orders SET is_ready = TRUE WHERE order_id = :orderId",
            nativeQuery = true)
-    fun onReadyOrder(@Param("orderId") orderId: Int)
+    fun setOrderReady(@Param("orderId") orderId: Int)
+
+    @Transactional
+    @Modifying
+    @Query(value = "UPDATE orders SET started_cooking = TRUE WHERE order_id = :orderId",
+           nativeQuery = true)
+    fun setOrderStartedCooking(@Param("orderId") orderId: Int)
 }

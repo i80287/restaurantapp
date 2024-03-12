@@ -1,4 +1,4 @@
-package restaurant.backend.services
+package restaurant.backend.scheduler
 
 import kotlinx.coroutines.*
 
@@ -14,8 +14,7 @@ class DishTask(val dishId: Int, val cookTime: Long, val orderTask: OrderTask, pr
         delay(cookTime)
         isCooking = false
         isCooked = true
-        val thisDishTask: DishTask = this
-        orderTask.onDishReady(thisDishTask)
+        orderTask.onDishReady(this)
     }
 
     override fun compareTo(other: DishTask): Int {

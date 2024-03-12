@@ -2,7 +2,6 @@ package restaurant.backend.db.entities
 
 import jakarta.persistence.*
 import lombok.NoArgsConstructor
-import java.io.Serializable
 
 @Entity
 @Table(name = "dishes")
@@ -12,7 +11,7 @@ data class DishEntity (
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false, fetch = FetchType.EAGER)
     @Column(name = "dish_id", unique = true, nullable = false, updatable = false)
-    var dishId: Int = -1,
+    var dishId: Int? = null,
     
     @Basic(optional = false)
     @Column(name = "name", unique = true, nullable = false)
@@ -24,5 +23,9 @@ data class DishEntity (
 
     @Basic(optional = false)
     @Column(name = "cook_time", nullable = false)
-    val cookTime: Long
+    val cookTime: Long,
+
+    @Basic(optional = false)
+    @Column(name = "price", nullable = false, updatable = true)
+    val price: Int
 )

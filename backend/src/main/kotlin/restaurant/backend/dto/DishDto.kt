@@ -4,12 +4,15 @@ import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderDishEntity
 
 data class DishDto(
-    val dishId: Int = -1,
+    val dishId: Int?,
     val name: String,
     val quantity: Int,
-    val cookTime: Long
+    val cookTime: Long,
+    val price: Int
 ) {
-    constructor(dish: DishEntity) : this(dish.dishId, dish.name, dish.quantity, dish.cookTime)
+    constructor(dish: DishEntity) : this(dish.dishId, dish.name, dish.quantity, dish.cookTime, dish.price)
 
-    fun toDish(): DishEntity = DishEntity(dishId, name, quantity, cookTime)
+    fun toDishWithId(): DishEntity = DishEntity(dishId!!, name, quantity, cookTime, price)
+
+    fun toDishWithoutId(): DishEntity = DishEntity(name =  name, quantity =  quantity, cookTime =  cookTime, price = price)
 }
