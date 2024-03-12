@@ -1,7 +1,6 @@
 package restaurant.backend.services
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderDishEntity
@@ -11,16 +10,13 @@ import restaurant.backend.db.repository.OrderRepository
 import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDto
 import java.util.*
-import kotlin.jvm.optionals.getOrNull
 
 @Service
 class OrderService @Autowired constructor(
     private val orderRepository: OrderRepository,
     private val orderDishRepository: OrderDishRepository,
-    private val orderScheduler: OrderScheduler) {
-    companion object {
-        private val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(OrderService::class.java)
-    }
+    private val orderScheduler: OrderScheduler)
+        : ServiceHelper<OrderService>(OrderService::class.java) {
 
     fun retrieveAllOrders(): List<OrderDto> = orderRepository.findAll().map { order: OrderEntity -> OrderDto(order) }
 
@@ -37,7 +33,7 @@ class OrderService @Autowired constructor(
             orderRepository.addOrder(orderDto)
         } catch (ex: Throwable) {
             // Incorrect data from the user
-            debugLog("Incorrect order data $orderDto in the OrderService::tryAddOrder(OrderDto)", ex)
+            debugLogOnIncorrectData(orderDto, "OrderService::tryAddOrder(OrderDto)", ex)
             return null
         }
 
@@ -59,7 +55,7 @@ class OrderService @Autowired constructor(
         val updatedOrderEntity: OrderEntity = try {
             orderRepository.addDishToOrder(orderAddDishDto) ?: return false
         } catch (ex: Throwable) {
-            debugLog("Incorrect data $orderAddDishDto in the OrderService::tryAddDishToOrder(OrderAddDishDto)", ex)
+            debugLogOnIncorrectData(orderAddDishDto, "OrderService::tryAddDishToOrder(OrderAddDishDto)", ex)
             return false
         }
 
@@ -69,9 +65,5 @@ class OrderService @Autowired constructor(
             .dish!!
         orderScheduler.addDishesToOrder(dishEntity, orderAddDishDto)
         return true
-    }
-
-    private inline fun <reified ExType: Throwable> debugLog(msg: String, ex: ExType) {
-        logger.debug("$msg\nException: $ex\n")
     }
 }

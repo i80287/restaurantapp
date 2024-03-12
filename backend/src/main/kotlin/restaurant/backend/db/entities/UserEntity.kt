@@ -2,11 +2,12 @@ package restaurant.backend.db.entities
 
 import jakarta.persistence.*
 import lombok.NoArgsConstructor
+import java.util.*
 
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
-class UserEntity (
+data class UserEntity (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -17,8 +18,8 @@ class UserEntity (
     val login: String,
 
     @Basic(optional = false)
-    @Column(name = "password_hash", nullable = false)
-    val passwordHash: Long,
+    @Column(name = "password_hash", nullable = false, columnDefinition = "uuid")
+    val passwordHash: UUID,
 
     @Basic(optional = false)
     @Column(name = "is_admin", nullable = false)

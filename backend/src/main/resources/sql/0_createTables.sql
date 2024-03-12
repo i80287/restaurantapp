@@ -1,7 +1,7 @@
 CREATE TABLE if NOT EXISTS users(
     user_id serial PRIMARY KEY,
     "login" text UNIQUE NOT NULL,
-    password_hash int8 NOT NULL,
+    password_hash UUID NOT NULL,
     is_admin boolean NOT NULL default FALSE
 );
 

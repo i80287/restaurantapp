@@ -4,7 +4,7 @@ import restaurant.backend.db.entities.OrderDishEntity
 import restaurant.backend.db.entities.OrderEntity
 
 data class OrderDto(
-    var orderId: Int? = null,
+    var orderId: Int = -1,
     val orderOwnerId: Int,
     val startTime: Long? = null,
     val isReady: Boolean = false,

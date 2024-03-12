@@ -9,16 +9,18 @@ import java.lang.Exception
 import java.util.*
 
 @Service
-class DishService(private val dishRepository: DishRepository) {
-    fun tryAddDish(dish: DishDto): Int? = try {
+class DishService(private val dishRepository: DishRepository)
+        : ServiceHelper<DishService>(DishService::class.java) {
+    fun tryAddDish(dishDto: DishDto): Int? = try {
         dishRepository.save(
             DishEntity(
-                name = dish.name,
-                quantity = dish.quantity,
-                cookTime = dish.cookTime
+                name = dishDto.name,
+                quantity = dishDto.quantity,
+                cookTime = dishDto.cookTime
             )
         ).dishId
     } catch (ex: Throwable) {
+        debugLogOnIncorrectData(dishDto, "DishService::tryAddDish(DishDto)", ex)
         null
     }
 

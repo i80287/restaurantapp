@@ -34,7 +34,7 @@ class OrderTask(private val order: OrderEntity, private val scheduler: OrderSche
 
     fun addDishes(dish: DishEntity, addingCount: Int): ArrayList<DishTask> {
         assert(addingCount > 0)
-        // Prevent ready() from becoming true while adding new dishes
+        // Prevent ready() from being true while adding new dishes
         totalDishesCount.getAndAdd(addingCount)
         val dishId: Int = dish.dishId
         val cookTime: Long = dish.cookTime

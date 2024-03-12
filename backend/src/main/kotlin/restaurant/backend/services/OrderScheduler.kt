@@ -25,11 +25,8 @@ import kotlin.concurrent.thread
 const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
 
 @Service
-class OrderScheduler @Autowired constructor(private val orderRepository: OrderRepository, @Lazy private val orderService: OrderService) {
-    companion object {
-        private val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(OrderScheduler::class.java)
-    }
-
+class OrderScheduler @Autowired constructor(private val orderRepository: OrderRepository, @Lazy private val orderService: OrderService)
+        : ServiceHelper<OrderScheduler>(OrderScheduler::class.java) {
     private val cookingThreads = ArrayList<Thread>(MAX_COOKING_DISHES_PER_ONE_TIME)
     private val dishTasks = PriorityBlockingQueue<DishTask>()
     private val cookedOrdersChannel: Channel<OrderTask> = Channel()

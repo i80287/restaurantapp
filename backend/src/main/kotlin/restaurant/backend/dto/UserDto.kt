@@ -16,4 +16,8 @@ data class UserDto(
         userId = userEntity.userId,
         isAdmin = userEntity.isAdmin,
         orders = userEntity.orders.map { itOrder: OrderEntity -> OrderDto(itOrder) }.toMutableList())
+
+    override fun toString(): String {
+        return "UserDto(login=$login, password=null, userId=$userId, isAdmin=$isAdmin, orders=$orders)"
+    }
 }

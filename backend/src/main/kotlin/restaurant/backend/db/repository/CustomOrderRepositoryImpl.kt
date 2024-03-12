@@ -17,7 +17,7 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
     }
 
     @Modifying
-    @Transactional(rollbackFor = [Throwable::class])
+    @Transactional(rollbackFor = [Throwable::class], readOnly = false)
     override fun addOrder(orderDto: OrderDto): OrderEntity {
         val orderEntity: OrderEntity = entityManager
             .createNativeQuery("INSERT INTO orders(user_id) VALUES (${orderDto.orderOwnerId}) RETURNING *;",
@@ -56,7 +56,7 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
     }
 
     @Modifying
-    @Transactional(rollbackFor = [Throwable::class])
+    @Transactional(rollbackFor = [Throwable::class], readOnly = false)
     override fun addDishToOrder(orderAddDishDto: OrderAddDishDto): OrderEntity? {
         val addingCount: Int = orderAddDishDto.addingCount
         val dishId: Int = orderAddDishDto.dishId
