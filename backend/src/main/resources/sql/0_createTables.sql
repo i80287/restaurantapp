@@ -1,11 +1,11 @@
-CREATE TABLE if NOT EXISTS users(
+CREATE TABLE IF NOT EXISTS users(
     user_id serial PRIMARY KEY,
     "login" text UNIQUE NOT NULL,
     password_hash UUID NOT NULL,
     is_admin boolean NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE if NOT EXISTS dishes(
+CREATE TABLE IF NOT EXISTS dishes(
     dish_id serial PRIMARY KEY,
     "name" text UNIQUE NOT NULL,
     quantity int4 NOT NULL DEFAULT 1,
@@ -16,7 +16,7 @@ CREATE TABLE if NOT EXISTS dishes(
     CONSTRAINT correct_price CHECK (price >= 0)
 );
 
-CREATE TABLE if NOT EXISTS orders(
+CREATE TABLE IF NOT EXISTS orders(
     order_id serial PRIMARY KEY,
     user_id int4 NOT NULL,
     start_time int8 NOT NULL DEFAULT (EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000)::int8,
@@ -26,7 +26,7 @@ CREATE TABLE if NOT EXISTS orders(
     CONSTRAINT fk_user_id FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE if NOT EXISTS order_dishes(
+CREATE TABLE IF NOT EXISTS order_dishes(
     relation_id bigserial PRIMARY KEY,
     order_id int4 NOT NULL,
     dish_id int4 NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE if NOT EXISTS order_dishes(
     CONSTRAINT fk_dish_id FOREIGN KEY(dish_id) REFERENCES dishes(dish_id) ON DELETE CASCADE
 );
 
-CREATE TABLE restaurant_info(
+CREATE TABLE IF NOT EXISTS restaurant_info(
     "key" varchar(63) PRIMARY KEY,
     "value" int8 NOT NULL
 );

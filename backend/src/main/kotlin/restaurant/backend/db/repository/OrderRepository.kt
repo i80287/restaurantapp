@@ -21,4 +21,6 @@ interface OrderRepository : JpaRepository<OrderEntity, Int>, CustomOrderReposito
     @Query(value = "UPDATE orders SET started_cooking = TRUE WHERE order_id = :orderId",
            nativeQuery = true)
     fun setOrderStartedCooking(@Param("orderId") orderId: Int)
+
+    fun findAllByOrderByOrderIdAsc(): List<OrderEntity>
 }

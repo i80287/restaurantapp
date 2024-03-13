@@ -60,11 +60,8 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
         val addingCount: Int = orderAddDishDto.addingCount
         val dishId: Int = orderAddDishDto.dishId
         val orderId: Int = orderAddDishDto.orderId
-        if (addingCount <= 0) {
-            return null
-        }
-
-        val orderEntity: OrderEntity = entityManager
+        assert(addingCount > 0)
+        return entityManager
             .createNativeQuery(
                 """
             UPDATE dishes SET quantity = quantity - $addingCount WHERE dish_id = $dishId;
@@ -75,13 +72,6 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
             """.trimIndent(), OrderEntity::class.java
             )
             .singleResult as OrderEntity
-
-        debugLog(
-            { "Added $addingCount dishes with id $dishId to the order with id $orderId" },
-            "CustomOrderRepositoryImpl::addDishToOrder(OrderAddDishDto)"
-        )
-
-        return orderEntity
     }
 
     @Modifying
@@ -123,14 +113,13 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
         assert(order.isReady)
         val orderId: Int = order.orderId!!
         entityManager
-            .createNativeQuery(
-                """
+            .createNativeQuery("""
+            WITH od AS (DELETE FROM order_dishes WHERE order_id = $orderId RETURNING dish_id, ordered_count)
             UPDATE restaurant_info SET "value" = "value" + (
                 SELECT sum(od.ordered_count * d.price)
-                FROM (DELETE FROM order_dishes WHERE order_id = $orderId RETURNING dish_id, ordered_count) od
+                FROM od
                 JOIN dishes d
                 ON od.dish_id = d.dish_id
-                WHERE od.order_id = $orderId
             ) WHERE "key" = 'revenue';
             DELETE FROM orders WHERE order_id = $orderId;""".trimIndent()
             ).executeUpdate()

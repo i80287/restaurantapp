@@ -1,5 +1,6 @@
 package restaurant.backend.services
 
+import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.DisposableBean
@@ -12,6 +13,7 @@ import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.db.repository.OrderRepository
 import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDeleteDishDto
+import restaurant.backend.dto.OrderDishDto
 import restaurant.backend.dto.OrderDto
 import restaurant.backend.scheduler.OrderScheduler
 import restaurant.backend.util.LoggingHelper
@@ -25,7 +27,8 @@ class OrderService @Autowired constructor(
 
     private final val orderScheduler = OrderScheduler(this)
 
-    final fun retrieveAllOrders(): List<OrderDto> = orderRepository.findAll().map { order: OrderEntity -> OrderDto(order) }
+    final fun retrieveAllOrders(): List<OrderDto> = orderRepository.findAllByOrderByOrderIdAsc().map { order: OrderEntity -> OrderDto(order) }
+
 
     final fun retrieveOrderById(orderId: Int): OrderDto? {
         val orderEntity: Optional<OrderEntity> = orderRepository.findById(orderId)
@@ -35,26 +38,54 @@ class OrderService @Autowired constructor(
         }
     }
 
-    final fun tryAddOrder(orderDto: OrderDto): Int? {
+    final suspend fun addOrder(orderDto: OrderDto): Int? {
+        if (orderDto.orderDishes.size <= 0) {
+            return null
+        }
+        for (orderDishDto: OrderDishDto in orderDto.orderDishes) {
+            if (orderDishDto.orderedCount <= 0) {
+                return null
+            }
+        }
+
         val order: OrderEntity = try {
-            orderRepository.addOrder(orderDto)
-        } catch (ex: RuntimeException) {
-            errorLog("OrderService::tryAddOrder(OrderDto)", ex)
+            withContext(Dispatchers.IO) {
+                orderRepository.addOrder(orderDto)
+            }
+        } catch (ex: org.springframework.dao.DataIntegrityViolationException) {
+            // Incorrect data from the user
+            debugLogOnIncorrectData(orderDto, "OrderService::addOrder(OrderDto)", ex)
             return null
         } catch (ex: Throwable) {
-            // Incorrect data from the user
-            debugLogOnIncorrectData(orderDto, "OrderService::tryAddOrder(OrderDto)", ex)
+            errorLog("OrderService::addOrder(OrderDto)", ex)
             return null
         }
 
         val orderId: Int = order.orderId!!
-        try {
+        return try {
             orderScheduler.addOrder(order)
-            return orderId
+            orderId
         } catch (ex: Throwable) {
-            orderRepository.deleteById(orderId)
-            logger.error("Internal error in the OrderScheduler::addOrder(OrderEntity)\nCould not add order $order\nException: $ex\n")
-            return null
+            withContext(Dispatchers.IO) {
+                orderRepository.deleteById(orderId)
+            }
+            errorLog("Could not add order $order", "OrderScheduler::addOrder(OrderEntity)", ex)
+            null
+        }
+    }
+
+    final suspend fun deleteOrder(orderId: Int): Boolean {
+        return orderScheduler.lockOrderIfCanBeChanged(orderId) && try {
+            withContext(Dispatchers.IO) {
+                orderRepository.deleteById(orderId)
+            }
+            orderScheduler.deleteOrder(orderId)
+            true
+        } catch (ex: Throwable) {
+            errorLog("OrderService::deleteOrder(int)", ex)
+            false
+        } finally {
+            orderScheduler.unlockOrder(orderId)
         }
     }
 
@@ -62,50 +93,58 @@ class OrderService @Autowired constructor(
         orderRepository.setOrderReady(orderId)
     }
 
-    final suspend fun tryAddDishToOrder(orderAddDishDto: OrderAddDishDto): Boolean {
-        val updatedOrderEntity: OrderEntity = try {
-            withContext(Dispatchers.IO) {
+    final suspend fun addDishToOrder(orderAddDishDto: OrderAddDishDto): Boolean {
+        return orderAddDishDto.addingCount > 0 &&
+                orderScheduler.lockOrderIfCanBeChanged(orderAddDishDto.orderId)
+                && try {
+            val updatedOrderEntity: OrderEntity = withContext(Dispatchers.IO) {
                 orderRepository.addDishToOrder(orderAddDishDto)
             } ?: return false
-        } catch (ex: Throwable) {
-            debugLogOnIncorrectData(orderAddDishDto, "OrderService::tryAddDishToOrder(OrderAddDishDto)", ex)
-            return false
-        }
 
-        val dishEntity: DishEntity = updatedOrderEntity
-            .dishes
-            .find { orderDishEntity: OrderDishEntity -> orderDishEntity.dishId == orderAddDishDto.dishId }!!
-            .dish!!
-        return try {
+            val dishEntity: DishEntity = updatedOrderEntity
+                .dishes
+                .find { orderDishEntity: OrderDishEntity -> orderDishEntity.dishId == orderAddDishDto.dishId }!!
+                .dish!!
+
             orderScheduler.addDishesToOrder(dishEntity, orderAddDishDto)
             true
         } catch (ex: UnsupportedOperationException) {
+            errorLog("OrderService::addDishToOrder(OrderAddDishDto)", ex)
             false
         } catch (ex: Throwable) {
-            errorLog("OrderService::tryAddDishToOrder(OrderAddDishDto)", ex)
+            debugLogOnIncorrectData(orderAddDishDto, "OrderService::addDishToOrder(OrderAddDishDto)", ex)
             false
+        } finally {
+            orderScheduler.unlockOrder(orderAddDishDto.orderId)
         }
     }
 
     final suspend fun deleteDishFromOrder(orderDeleteDishDto: OrderDeleteDishDto): Boolean {
-        try {
-            val deletedSuccessfully: Boolean = withContext(Dispatchers.IO) {
-                orderRepository.deleteDishFromOrder(orderDeleteDishDto)
-            }
-            if (!deletedSuccessfully) {
-                return false
-            }
-        } catch (ex: Throwable) {
-            debugLogOnIncorrectData(orderDeleteDishDto, "OrderService::deleteDishFromOrder(OrderDeleteDishDto)", ex)
-            return false
-        }
+        return orderDeleteDishDto.deletingCount > 0 &&
+                orderScheduler.lockOrderIfCanBeChanged(orderDeleteDishDto.orderId) &&
+                try {
+                    val deletedSuccessfully: Boolean = withContext(Dispatchers.IO) {
+                        orderRepository.deleteDishFromOrder(orderDeleteDishDto)
+                    }
+                    if (!deletedSuccessfully) {
+                        return false
+                    }
 
-        try {
-            orderScheduler.cancelDishes(orderDeleteDishDto)
-        } catch (ex: Throwable) {
-            errorLog( "OrderService::deleteDishFromOrder(OrderDeleteDishDto)", ex)
-        }
-        return true
+                    orderScheduler.cancelDishes(orderDeleteDishDto)
+                    true
+                } catch (ex: UnsupportedOperationException) {
+                    errorLog("OrderService::deleteDishFromOrder(OrderDeleteDishDto)", ex)
+                    false
+                } catch (ex: Throwable) {
+                    debugLogOnIncorrectData(
+                        orderDeleteDishDto,
+                        "OrderService::deleteDishFromOrder(OrderDeleteDishDto)",
+                        ex
+                    )
+                    false
+                } finally {
+                    orderScheduler.unlockOrder(orderDeleteDishDto.orderId)
+                }
     }
 
     final fun onOrderPaid(orderId: Int): PaidOrderStatus {
@@ -125,6 +164,11 @@ class OrderService @Autowired constructor(
 
     final fun notifyFirstOrderDishStartedCooking(orderId: Int) {
         orderRepository.setOrderStartedCooking(orderId)
+    }
+
+    @PostConstruct
+    fun initSchedulerOnAppInitialization() {
+        orderScheduler.scheduleOrdersOnAppInitialization(orderRepository.findAll())
     }
 
     override fun destroy() {

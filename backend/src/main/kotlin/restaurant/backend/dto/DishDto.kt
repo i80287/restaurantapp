@@ -1,7 +1,6 @@
 package restaurant.backend.dto
 
 import restaurant.backend.db.entities.DishEntity
-import restaurant.backend.db.entities.OrderDishEntity
 
 data class DishDto(
     val dishId: Int?,

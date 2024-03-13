@@ -1,5 +1,7 @@
 package restaurant.backend.util
 
+fun createLoggerByName(name: String): org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(name)!!
+
 open class LoggingHelper <T: Any>(clazz: Class<T>) {
     protected val logger: org.slf4j.Logger = org.slf4j.LoggerFactory.getLogger(clazz)
 
