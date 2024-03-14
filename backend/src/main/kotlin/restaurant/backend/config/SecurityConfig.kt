@@ -21,7 +21,6 @@ import org.springframework.security.config.annotation.web.configurers.ExceptionH
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer
 import org.springframework.security.core.AuthenticationException
-import org.springframework.security.web.access.ExceptionTranslationFilter
 
 // import javax.servlet.http.HttpServletResponse;
 
@@ -32,25 +31,17 @@ import org.springframework.security.web.access.ExceptionTranslationFilter
 class SecurityConfig(private val jwtFilter: JwtFilter) {
     @Bean
     @Throws(Exception::class)
-    fun filterChain(http: HttpSecurity): SecurityFilterChain{
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
         return http
             .httpBasic { configurer: HttpBasicConfigurer<HttpSecurity> -> configurer.disable() }
             .csrf { csrf: CsrfConfigurer<HttpSecurity> -> csrf.disable() }
             .sessionManagement { management: SessionManagementConfigurer<HttpSecurity> -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-            .exceptionHandling { configurer: ExceptionHandlingConfigurer<HttpSecurity> -> configurer.authenticationEntryPoint {
-                    _: HttpServletRequest,
-                    response: HttpServletResponse,
-                    ex: AuthenticationException ->
-                response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    ex.message
-                )
-            } }
-            .authorizeHttpRequests { authz -> authz.anyRequest().authenticated() }
+            .authorizeHttpRequests { authz -> authz
+                .requestMatchers("/auth/login", "/auth/token").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/user/**").hasRole("USER")
+                .anyRequest().authenticated() }
             .addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
     }
-
-    @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 }

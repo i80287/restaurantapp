@@ -1,7 +1,6 @@
 package restaurant.backend.schedulers
 
 import kotlinx.coroutines.*
-import restaurant.backend.schedulers.OrderTask
 import java.util.concurrent.atomic.AtomicBoolean
 
 const val DEFAULT_TASK_PRIORITY = 10
@@ -10,7 +9,7 @@ class DishTask private constructor (val dishTaskOrderUniqueId: Int,
                                     val dishId: Int,
                                     private val cookTime: Long,
                                     val orderTask: OrderTask,
-                                    @Volatile private var priority: Int)
+                                    priority: Int)
         : Comparable<DishTask> {
     companion object {
         fun createTask(dishTaskOrderUniqueId: Int,
@@ -22,13 +21,14 @@ class DishTask private constructor (val dishTaskOrderUniqueId: Int,
         }
     }
 
+    @Volatile var priority: Int = priority
+        private set
+
     val isCooked = AtomicBoolean()
     val isCooking = AtomicBoolean()
     private val cancelled = AtomicBoolean()
 
-    fun cancelDishTask() {
-        cancelled.set(true)
-    }
+    fun cancelDishTask() = cancelled.set(true)
 
     fun isDishTaskCancelled(): Boolean = cancelled.get()
 

@@ -1,26 +1,40 @@
 package restaurant.interactor
 
-import java.net.URI
-import java.net.URLEncoder
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
+import org.springframework.context.annotation.Bean
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.body
+import restaurant.interactor.domain.JwtRequest
+import restaurant.interactor.services.BackendRequestService
+import restaurant.interactor.util.CommandExecutor
+import restaurant.interactor.util.UserInteractor
 
-import kotlinx.serialization.json.Json.Default.parseToJsonElement
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonArray
+@SpringBootApplication
+class InteractorApplication(@Autowired private val service: BackendRequestService) : CommandLineRunner {
+    private val interactor = UserInteractor(service)
+    private val commandExecutor = CommandExecutor(service)
 
-fun String.utf8(): String = URLEncoder.encode(this, "UTF-8")
+    override fun run(vararg args: String?) {
+        if (!interactor.loginOrRegisterUser()) {
+            commandExecutor.exitCommand()
+            return
+        }
+
+        when (interactor.nextCommand()) {
+            UserInteractor.UserCommand.Exit -> {
+                commandExecutor.exitCommand()
+                return
+            }
+            else -> {
+
+            }
+        }
+    }
+}
 
 fun main(args: Array<String>) {
-	val request = HttpRequest.newBuilder()
-		.uri(URI.create("http://localhost:8080/users/get"))
-		.build()
-	val response: HttpResponse<String> = HttpClient
-		.newBuilder()
-		.build()
-		.send(request, HttpResponse.BodyHandlers.ofString())
-	val users: JsonArray = parseToJsonElement(response.body()).jsonArray
-	print(users.size)
+	runApplication<InteractorApplication>(*args)
 }

@@ -9,7 +9,7 @@ import restaurant.backend.services.OrderService
 import restaurant.backend.util.PaidOrderStatus
 
 @RestController
-@RequestMapping("orders")
+@RequestMapping("/orders")
 class OrderController(private val orderService: OrderService) : ControllerHelper() {
     @GetMapping("/get/all")
     fun getOrders(): ResponseEntity<List<OrderDto>> = ResponseEntity.ok(orderService.retrieveAllOrders())

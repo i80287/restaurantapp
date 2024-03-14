@@ -10,7 +10,7 @@ import io.jsonwebtoken.security.Keys
 import io.jsonwebtoken.security.SignatureException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import restaurant.backend.dto.UserDto
+import restaurant.backend.db.entities.UserEntity
 import restaurant.backend.util.LoggingHelper
 
 import javax.crypto.SecretKey
@@ -24,16 +24,15 @@ import java.util.*
 class JwtProvider(
     @Value("\${jwt.secret.access}") jwtAccessSecret: String,
     @Value("\${jwt.secret.refresh}") jwtRefreshSecret: String
-) :
-    LoggingHelper<JwtProvider>(JwtProvider::class.java) {
+) : LoggingHelper<JwtProvider>(JwtProvider::class.java) {
 
     private val jwtAccessSecret: SecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret))
     private val jwtRefreshSecret: SecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret))
 
-    fun generateAccessToken(user: UserDto): String {
+    fun generateAccessToken(user: UserEntity): String {
         val now: LocalDateTime = LocalDateTime.now()
         val accessExpirationInstant: Instant = now
-            .plusMinutes(5)
+            .plusMinutes(10)
             .atZone(ZoneId.systemDefault())
             .toInstant()
         val accessExpiration: Date = Date.from(accessExpirationInstant)
@@ -41,11 +40,11 @@ class JwtProvider(
             .setSubject(user.login)
             .setExpiration(accessExpiration)
             .signWith(jwtAccessSecret)
-            .claim("roles", Collections.singleton(user.role))
+            .claim("role", user.role)
             .compact()
     }
 
-    fun generateRefreshToken(user: UserDto): String {
+    fun generateRefreshToken(user: UserEntity): String {
         val now: LocalDateTime = LocalDateTime.now()
         val refreshExpirationInstant: Instant = now
             .plusDays(30)
@@ -72,7 +71,7 @@ class JwtProvider(
             Jwts.parserBuilder()
                 .setSigningKey(jwtSecret)
                 .build()
-                .parseClaimsJws(token);
+                .parseClaimsJws(token)
             return true
         } catch (expEx: ExpiredJwtException) {
             log.error("Token expired", expEx)

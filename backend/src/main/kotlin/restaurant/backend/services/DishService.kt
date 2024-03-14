@@ -23,7 +23,7 @@ class DishService(private val dishRepository: DishRepository)
     }
 
     fun retrieveDishById(dishId: Int): DishDto? {
-        val dishEntity: Optional<DishEntity> =  dishRepository.findById(dishId)
+        val dishEntity: Optional<DishEntity> = dishRepository.findById(dishId)
         return when {
             dishEntity.isPresent -> DishDto(dishEntity.get())
             else -> null

@@ -43,9 +43,9 @@ class JwtFilter @Autowired constructor(private val jwtProvider: JwtProvider) : G
     }
 
     private fun getTokenFromRequest(request: HttpServletRequest): String? {
-        val bearer: String = request.getHeader(AUTHORIZATION);
-        if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
+        val bearer: String? = request.getHeader(AUTHORIZATION)
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            return bearer.substring(7)
         }
         return null
     }

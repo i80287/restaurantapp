@@ -9,9 +9,9 @@ open class LoggingHelper <T: Any>(clazz: Class<T>) {
         }
     }
 
-    protected inline fun <reified T : Any> debugLog(loggingObjectFactory: () -> T, methodName: String) {
+    protected inline fun <reified T : Any> debugLog(lazyMessage: () -> T, methodName: String) {
         if (log.isDebugEnabled) {
-            log.debug("${loggingObjectFactory()} in the $methodName")
+            log.debug("${lazyMessage()} in the $methodName")
         }
     }
 
@@ -25,9 +25,9 @@ open class LoggingHelper <T: Any>(clazz: Class<T>) {
         log.info("$msg in the $methodName")
     }
 
-    protected inline fun <reified T : Any, reified ExType: Throwable> debugLog(loggingObjectFactory: () -> T, methodName: String, ex: ExType) {
+    protected inline fun <reified T : Any, reified ExType: Throwable> debugLog(lazyMessage: () -> T, methodName: String, ex: ExType) {
         if (log.isDebugEnabled) {
-            log.debug("${loggingObjectFactory()} in the $methodName\nException: $ex\nStacktrace: ${ex.stackTraceToString()}")
+            log.debug("${lazyMessage()} in the $methodName\nException: $ex\nStacktrace: ${ex.stackTraceToString()}")
         }
     }
 
