@@ -1,4 +1,4 @@
-package restaurant.backend.db.repository
+package restaurant.backend.db.repositories
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository

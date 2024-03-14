@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service
 import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderDishEntity
 import restaurant.backend.db.entities.OrderEntity
-import restaurant.backend.db.repository.OrderRepository
+import restaurant.backend.db.repositories.OrderRepository
 import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDeleteDishDto
 import restaurant.backend.dto.OrderDishDto
 import restaurant.backend.dto.OrderDto
-import restaurant.backend.scheduler.OrderScheduler
+import restaurant.backend.schedulers.OrderScheduler
 import restaurant.backend.util.LoggingHelper
 import restaurant.backend.util.PaidOrderStatus
 import java.util.*

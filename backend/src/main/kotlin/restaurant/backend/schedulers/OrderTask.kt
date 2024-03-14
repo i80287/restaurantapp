@@ -1,4 +1,4 @@
-package restaurant.backend.scheduler
+package restaurant.backend.schedulers
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.sync.Mutex
@@ -6,6 +6,8 @@ import kotlinx.coroutines.sync.withLock
 import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.db.entities.OrderDishEntity
+import restaurant.backend.schedulers.DishTask
+import restaurant.backend.schedulers.OrderScheduler
 import java.lang.UnsupportedOperationException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -64,7 +66,8 @@ class OrderTask private constructor(order: OrderEntity, private val scheduler: O
             val cookTime: Long = dish.cookTime
             val newDishesTasks = ArrayList<DishTask>(addingCount)
             repeat(addingCount) {
-                newDishesTasks.add(DishTask.createTask(dishTaskOrderUniqueId = nextDishTaskUniqueId(),
+                newDishesTasks.add(
+                    DishTask.createTask(dishTaskOrderUniqueId = nextDishTaskUniqueId(),
                                                        dishId = dishId,
                                                        cookTime = cookTime,
                                                        orderTask = this))
@@ -222,7 +225,8 @@ class OrderTask private constructor(order: OrderEntity, private val scheduler: O
             assert(orderedCount > 0)
             totalDishes += orderedCount
             repeat(orderedCount) {
-                dishesTasks.add(DishTask.createTask(dishTaskOrderUniqueId = nextDishTaskUniqueId(),
+                dishesTasks.add(
+                    DishTask.createTask(dishTaskOrderUniqueId = nextDishTaskUniqueId(),
                                                     dishId = dishId,
                                                     cookTime = cookTime,
                                                     orderTask = this))

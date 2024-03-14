@@ -1,5 +1,6 @@
 package restaurant.backend.db.entities
 
+import restaurant.backend.dto.Role
 import jakarta.persistence.*
 import lombok.NoArgsConstructor
 import java.util.*
@@ -21,14 +22,14 @@ data class UserEntity (
     @Column(name = "password_hash", nullable = false, columnDefinition = "uuid")
     val passwordHash: UUID,
 
-    @Basic(optional = false)
-    @Column(name = "is_admin", nullable = false)
-    val isAdmin: Boolean,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role", nullable = false)
+    val role: Role,
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
     val orders: MutableList<OrderEntity> = mutableListOf()
 ) {
     override fun toString(): String {
-        return "UserEntity(userId=$userId,login=$login,passwordHash=$passwordHash,isAdmin=$isAdmin,orders=${orders.size})"
+        return "UserEntity(userId=$userId,login=$login,passwordHash=$passwordHash,role=$role,orders=${orders.size})"
     }
 }

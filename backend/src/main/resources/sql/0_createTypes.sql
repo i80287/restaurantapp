@@ -1,0 +1,2 @@
+CREATE TYPE role_type AS ENUM('USER', 'ADMIN');
+CREATE CAST (varchar AS role_type) WITH INOUT AS IMPLICIT;

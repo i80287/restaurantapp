@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users(
     user_id serial PRIMARY KEY,
     "login" text UNIQUE NOT NULL,
     password_hash UUID NOT NULL,
-    is_admin boolean NOT NULL DEFAULT FALSE
+    user_role role_type NOT NULL DEFAULT 'USER'
 );
 
 CREATE TABLE IF NOT EXISTS dishes(

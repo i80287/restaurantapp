@@ -1,4 +1,4 @@
-package restaurant.backend.scheduler
+package restaurant.backend.schedulers
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -11,11 +11,13 @@ import java.util.PriorityQueue
 import java.util.concurrent.PriorityBlockingQueue
 import kotlin.concurrent.thread
 
-const val PRIORITY_UPDATE_CYCLE_TIMEOUT_MILLISECONDS = 2_000L
-const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 20_000L
-const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
-
 class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::class.java) {
+    companion object {
+        private const val PRIORITY_UPDATE_CYCLE_TIMEOUT_MILLISECONDS = 2_000L
+        private const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 20_000L
+        private const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
+    }
+
     private val priorityUpdateStateLock: Mutex = Mutex()
     private val dishTasksQueue = PriorityBlockingQueue<DishTask>()
     private val priorityUpdateTasksQueue = PriorityQueue<PriorityUpdateEntry>()
@@ -61,7 +63,7 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
                             }
                             
                             val timePassed: Long = currentTime - earliestTask.lastTimeUpdatedMillis
-                            logger.info("Task $dishTask time passed=${timePassed/1000} sec")
+                            log.info("Task $dishTask time passed=${timePassed/1000} sec")
                             val shouldUpdateEarliest: Boolean = timePassed >= PRIORITY_UPDATE_TIMEOUT_MILLISECONDS
                             if (!shouldUpdateEarliest) {
                                 break
@@ -70,7 +72,7 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
                             earliestTask.lastTimeUpdatedMillis = currentTime
                             priorityUpdateTasksQueue.offer(earliestTask)
                             updateDishTaskPriority(dishTask)
-                            logger.info("Updated priority for the $dishTask")
+                            log.info("Updated priority for the $dishTask")
                         } while (--limit > 0)
                     }
                 } catch (ex: InterruptedException) {

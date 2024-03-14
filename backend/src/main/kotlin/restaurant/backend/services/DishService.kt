@@ -1,13 +1,11 @@
 package restaurant.backend.services
 
-import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import restaurant.backend.db.entities.DishEntity
-import restaurant.backend.db.repository.DishRepository
+import restaurant.backend.db.repositories.DishRepository
 import restaurant.backend.dto.DishDto
 import restaurant.backend.util.LoggingHelper
-import java.lang.Exception
 import java.util.*
 
 @Service

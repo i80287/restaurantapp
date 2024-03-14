@@ -1,8 +1,7 @@
 package restaurant.backend.services
-
 import org.springframework.stereotype.Service
 import restaurant.backend.db.entities.UserEntity
-import restaurant.backend.db.repository.UserRepository
+import restaurant.backend.db.repositories.UserRepository
 import restaurant.backend.dto.UserDto
 import restaurant.backend.util.LoggingHelper
 import java.util.Optional
@@ -28,11 +27,11 @@ class UserService(private val userRepository: UserRepository, private val passwo
         return userRepository.findAll().map { it: UserEntity -> UserDto(it) }
     }
 
-    fun tryAddUser(user: UserDto): Int? = try {
+    fun addUser(user: UserDto): Int? = try {
         userRepository.save(UserEntity(
             login = user.login,
             passwordHash = passwordService.encodePassword(user.password!!),
-            isAdmin = user.isAdmin
+            role = user.role
         )).userId
     } catch (ex: Throwable) {
         debugLogOnIncorrectData(user, "UserService::addUser(UserDto)", ex)

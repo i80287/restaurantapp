@@ -1,4 +1,4 @@
-package restaurant.backend.scheduler
+package restaurant.backend.schedulers
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -6,6 +6,7 @@ import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDeleteDishDto
+import restaurant.backend.schedulers.OrderTask
 import restaurant.backend.services.OrderService
 import restaurant.backend.util.LoggingHelper
 import java.util.concurrent.ConcurrentHashMap

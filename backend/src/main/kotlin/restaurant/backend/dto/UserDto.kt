@@ -4,20 +4,20 @@ import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.db.entities.UserEntity
 
 data class UserDto(
+    val userId: Int? = null,
     val login: String,
     val password: String? = null,
-    val userId: Int? = null,
-    val isAdmin: Boolean = false,
-    val orders: MutableList<OrderDto>? = null
+    var role: Role,
+    val orders: MutableList<OrderDto> = mutableListOf(),
 ) {
     constructor(userEntity: UserEntity) : this(
+        userId = userEntity.userId,
         login = userEntity.login,
         password = null,
-        userId = userEntity.userId,
-        isAdmin = userEntity.isAdmin,
+        role = userEntity.role,
         orders = userEntity.orders.map { itOrder: OrderEntity -> OrderDto(itOrder) }.toMutableList())
 
     override fun toString(): String {
-        return "UserDto(login=$login, password=null, userId=$userId, isAdmin=$isAdmin, orders=$orders)"
+        return "UserDto(userId=$userId,login=$login,password=null,role=$role,orders=$orders)"
     }
 }

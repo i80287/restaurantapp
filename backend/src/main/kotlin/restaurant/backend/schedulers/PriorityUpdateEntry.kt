@@ -1,4 +1,4 @@
-package restaurant.backend.scheduler
+package restaurant.backend.schedulers
 
 class PriorityUpdateEntry(var lastTimeUpdatedMillis: Long, val dishTask: DishTask)
     : Comparable<PriorityUpdateEntry> {

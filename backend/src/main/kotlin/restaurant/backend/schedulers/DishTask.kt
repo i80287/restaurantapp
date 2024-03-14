@@ -1,21 +1,23 @@
-package restaurant.backend.scheduler
+package restaurant.backend.schedulers
 
 import kotlinx.coroutines.*
+import restaurant.backend.schedulers.OrderTask
 import java.util.concurrent.atomic.AtomicBoolean
 
 const val DEFAULT_TASK_PRIORITY = 10
 
 class DishTask private constructor (val dishTaskOrderUniqueId: Int,
-               val dishId: Int,
-               private val cookTime: Long,
-               val orderTask: OrderTask,
-               @Volatile private var priority: Int)
+                                    val dishId: Int,
+                                    private val cookTime: Long,
+                                    val orderTask: OrderTask,
+                                    @Volatile private var priority: Int)
         : Comparable<DishTask> {
     companion object {
         fun createTask(dishTaskOrderUniqueId: Int,
                        dishId: Int,
                        cookTime: Long,
-                       orderTask: OrderTask): DishTask {
+                       orderTask: OrderTask
+        ): DishTask {
             return DishTask(dishTaskOrderUniqueId, dishId, cookTime, orderTask, DEFAULT_TASK_PRIORITY)
         }
     }
