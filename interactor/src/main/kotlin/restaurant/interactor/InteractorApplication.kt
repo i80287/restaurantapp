@@ -15,21 +15,31 @@ import restaurant.interactor.util.UserInteractor
 @SpringBootApplication
 class InteractorApplication(@Autowired private val service: BackendRequestService) : CommandLineRunner {
     private val interactor = UserInteractor(service)
-    private val commandExecutor = CommandExecutor(service)
+    private val commandExecutor = CommandExecutor(service, interactor)
 
     override fun run(vararg args: String?) {
         if (!interactor.loginOrRegisterUser()) {
-            commandExecutor.exitCommand()
+            commandExecutor.exit()
             return
         }
 
-        when (interactor.nextCommand()) {
-            UserInteractor.UserCommand.Exit -> {
-                commandExecutor.exitCommand()
-                return
-            }
-            else -> {
-
+        while (true) {
+            when (interactor.nextCommand()) {
+                UserInteractor.UserCommand.AddDish -> commandExecutor.addDish()
+                //            UserInteractor.UserCommand.RemoveDish -> commandExecutor.removeDish()
+                //            UserInteractor.UserCommand.UpdateDishPrice -> commandExecutor.updateDishPrice()
+                //            UserInteractor.UserCommand.UpdateDishQuantity -> commandExecutor.updateDishQuantity()
+                //            UserInteractor.UserCommand.UpdateDishCookTime -> commandExecutor.updateDishCookTime()
+                //            UserInteractor.UserCommand.MakeOrder -> commandExecutor.makeOrder()
+                //            UserInteractor.UserCommand.AddDishToOrder -> commandExecutor.addDishToOrder()
+                //            UserInteractor.UserCommand.RemoveDishFromOrder -> commandExecutor.removeDishFromOrder()
+                //            UserInteractor.UserCommand.GetOrderInfo -> commandExecutor.getOrderInfo()
+                //            UserInteractor.UserCommand.PayForTheOrder -> commandExecutor.payForTheOrder()
+                UserInteractor.UserCommand.Exit -> {
+                    commandExecutor.exit()
+                    return
+                }
+                else -> { }
             }
         }
     }
