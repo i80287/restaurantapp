@@ -42,8 +42,6 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             return LoginResponseStatus.OK
         } catch (forbEx: WebClientResponseException.Forbidden) {
             return LoginResponseStatus.FORBIDDEN
-        } catch (respEx: WebClientResponseException) {
-            println(respEx)
         } catch (reqEx: WebClientRequestException) {
             if (isServerNotRunningOrUnreachable(reqEx)) {
                 return LoginResponseStatus.SERVER_IS_NOT_RUNNING
@@ -60,49 +58,42 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             try {
                 return postJsonWithAccessToken(dishDto, "dishes/add")
             } catch (fbEx: WebClientResponseException.Forbidden) {
-                if (updateAccessToken())
-                    continue
+                return updateTokens() ?: continue
             } catch (fbEx: WebClientResponseException.BadRequest) {
                 return fbEx.responseBodyAsString
             } catch (reqEx: WebClientRequestException) {
                 if (isServerNotRunningOrUnreachable(reqEx))
                     return "Server is not active or unreachable"
+                return reqEx.localizedMessage
             } catch (ex: Throwable) {
-                println(ex)
+                return ex.localizedMessage
             }
-            return "Unknown error occured while adding dish"
         }
     }
 
-    private fun updateAccessToken(): Boolean {
-        while (true) {
-            val errorMessage = try {
-                val response: JwtResponse = webClient
-                    .post()
-                    .uri("auth/token")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(RefreshJwtRequest(cachedRefreshToken)), RefreshJwtRequest::class.java)
-                    .retrieve()
-                    .bodyToMono(JwtResponse::class.java)
-                    .block()!!
-                cachedAccessToken = response.accessToken!!
-                return true
-            } catch (exBadReq: WebClientResponseException.BadRequest) {
-                if (updateRefreshToken()) {
-                    continue
-                }
-                "Both access and refresh tokens are expired and could not be updated"
-            } catch (ex: WebClientRequestException) {
-                if (isServerNotRunningOrUnreachable(ex)) {
-                    "Server is not active or unreachable"
-                } else {
-                    "Unknown error occured while updating access token"
-                }
-            } catch (ex: Throwable) {
+    private fun updateTokens(): String? {
+        return try {
+            val response: JwtResponse = webClient
+                .post()
+                .uri("auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(RefreshJwtRequest(cachedRefreshToken)), RefreshJwtRequest::class.java)
+                .retrieve()
+                .bodyToMono(JwtResponse::class.java)
+                .block()!!
+            cachedAccessToken = response.accessToken!!
+            cachedRefreshToken = response.refreshToken!!
+            null
+        } catch (exBadReq: WebClientResponseException.BadRequest) {
+            "Both access and refresh tokens are expired and could not be updated"
+        } catch (ex: WebClientRequestException) {
+            if (isServerNotRunningOrUnreachable(ex)) {
+                "Server is not active or unreachable"
+            } else {
                 "Unknown error occured while updating access token"
             }
-            println(errorMessage)
-            return false
+        } catch (ex: Throwable) {
+            "Unknown error occured while updating access token"
         }
     }
 
@@ -122,26 +113,5 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
     private final fun isServerNotRunningOrUnreachable(ex: WebClientRequestException): Boolean {
         val message = ex.message
         return message != null && message.startsWith("Connection refused")
-    }
-
-    private final fun updateRefreshToken(): Boolean {
-        try {
-            val response: JwtResponse = webClient
-                .post()
-                .uri("auth/refresh")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(RefreshJwtRequest(cachedRefreshToken)), RefreshJwtRequest::class.java)
-                .retrieve()
-                .bodyToMono(JwtResponse::class.java)
-                .block()!!
-            cachedAccessToken = response.accessToken!!
-            cachedRefreshToken = response.refreshToken!!
-            return true
-        } catch (ex: WebClientRequestException) {
-            if (isServerNotRunningOrUnreachable(ex))
-                println("Server is not active or unreachable")
-        } catch (_: Throwable) {
-        }
-        return false
     }
 }
