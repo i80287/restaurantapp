@@ -1,4 +1,5 @@
 package restaurant.backend.services
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import restaurant.backend.db.entities.UserEntity
 import restaurant.backend.db.repositories.UserRepository
@@ -28,14 +29,44 @@ class UserService(private val userRepository: UserRepository, private val passwo
         return userRepository.findAll().map { it: UserEntity -> UserDto(it) }
     }
 
-    fun addUser(user: UserDto): Int? = try {
-        userRepository.save(UserEntity(
-            login = user.login,
-            passwordHash = passwordEncoder.encode(user.password!!),
-            role = user.role
-        )).userId
-    } catch (ex: Throwable) {
-        debugLogOnIncorrectData(user, "UserService::addUser(UserDto)", ex)
-        null to "Can't"
+    fun addUser(user: UserDto): Pair<Boolean, String> {
+        try {
+            val login = user.login
+            val role = user.role
+            val newUserId: Int = userRepository.save(UserEntity(
+                login = login,
+                passwordHash = passwordEncoder.encode(user.password!!),
+                role = role
+            )).userId!!
+            return true to "Added user with id $newUserId, login $login and role $role"
+        } catch (ex: Throwable) {
+            logDebugOnIncorrectData(user, "UserService::addUser(UserDto)", ex)
+            return false to "Can't add user: incorrect data"
+        }
+    }
+
+    fun deleteUserById(userId: Int): Pair<Boolean, String> {
+        try {
+            val userEntity: UserEntity = userRepository.findByIdOrNull(userId)
+                    ?: return false to "User with id $userId does not exist"
+            userRepository.deleteById(userId)
+            return true to "Deleted user with id $userId, login ${userEntity.login} and role ${userEntity.role}"
+        } catch (ex: Throwable) {
+            logError("UserService::deleteUserById(int)", ex)
+            return false to "Internal server error: can't delete user with id $userId"
+        }
+    }
+
+    fun deleteUserByLogin(userLogin: String): Pair<Boolean, String> {
+        try {
+            val userEntity: UserEntity = userRepository.findByLogin(userLogin)
+                    ?: return false to "User with login $userLogin does not exist"
+            val userId = userEntity.userId!!
+            userRepository.deleteById(userId)
+            return true to "Deleted user with id $userId, login $userLogin and role ${userEntity.role}"
+        } catch (ex: Throwable) {
+            logError("UserService::deleteUserByLogin(String)", ex)
+            return false to "Internal server error: can't delete user with login $userLogin"
+        }
     }
 }

@@ -18,23 +18,24 @@ class OrderController(private val orderService: OrderService) : ControllerHelper
     fun getOrderById(@PathVariable("id") orderId: Int): ResponseEntity<OrderDto> = responseFromNullable(orderService.retrieveOrderById(orderId))
 
     @PostMapping("/add")
-    suspend fun addOrder(@RequestBody order: OrderDto): ResponseEntity<String> = responseFromAddedId(orderService.addOrder(order))
+    suspend fun addOrder(@RequestBody order: OrderDto): ResponseEntity<String>
+        = responseFromBoolStatus(orderService.addOrder(order))
 
     @PostMapping("/add/dish")
     suspend fun addDishToOrder(@RequestBody orderAddDishDto: OrderAddDishDto): ResponseEntity<String> =
-        responseFromBoolStatus(orderService.addDishToOrder(orderAddDishDto), "incorrect data")
+        responseFromBoolStatus(orderService.addDishToOrder(orderAddDishDto))
 
     @PostMapping("/delete/dish")
     suspend fun deleteDishFromOrder(@RequestBody orderDeleteDishDto: OrderDeleteDishDto): ResponseEntity<String> =
-        responseFromBoolStatus(orderService.deleteDishFromOrder(orderDeleteDishDto), "incorrect data")
+        responseFromBoolStatus(orderService.deleteDishFromOrder(orderDeleteDishDto))
 
     @PostMapping("/paid/{id}")
     fun payOrder(@PathVariable("id") orderId: Int): ResponseEntity<String> =
         when (orderService.onOrderPaid(orderId)) {
-            PaidOrderStatus.OK -> ResponseEntity.ok("success")
+            PaidOrderStatus.OK -> ResponseEntity.ok("Success")
             PaidOrderStatus.ORDER_DOES_NOT_EXIST -> ResponseEntity.notFound().build()
-            PaidOrderStatus.ORDER_IS_NOT_READY -> ResponseEntity.badRequest().body("order is not ready yet")
-            PaidOrderStatus.OTHER_ERROR -> ResponseEntity.internalServerError().body("incorrect data")
+            PaidOrderStatus.ORDER_IS_NOT_READY -> ResponseEntity.badRequest().body("Order is not ready yet")
+            PaidOrderStatus.OTHER_ERROR -> ResponseEntity.internalServerError().body("Sorry, internal server error occured")
         }
 
     @DeleteMapping("/delete/{id}")

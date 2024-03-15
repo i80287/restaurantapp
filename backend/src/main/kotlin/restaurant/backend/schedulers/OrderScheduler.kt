@@ -31,13 +31,13 @@ class OrderScheduler(private val orderService: OrderService) :
     suspend fun addOrder(order: OrderEntity) {
         val orderTask: OrderTask = OrderTask.createOrderTask(order = order, scheduler = this)
         val orderId = orderTask.orderId
-        debugLog(
+        logDebug(
             { "Adding ${orderTask.dishesTasks.size} dish cooking tasks | order id = $orderId" },
             "OrderScheduler::addOrder()"
         )
         dishTaskScheduler.addAll(orderTask.dishesTasks)
         cookingOrders[orderId] = orderTask
-        debugLog({ "Added $orderId to the cookingOrders" }, "OrderScheduler::addOrder()")
+        logDebug({ "Added $orderId to the cookingOrders" }, "OrderScheduler::addOrder()")
     }
 
     suspend fun addDishesToOrder(dishEntity: DishEntity, orderAddDishDto: OrderAddDishDto) {
@@ -51,10 +51,12 @@ class OrderScheduler(private val orderService: OrderService) :
             .cancelDishes(orderDeleteDishDto.dishId, orderDeleteDishDto.deletingCount)
     }
 
-    suspend fun deleteOrder(orderId: Int) {
-        val orderTask: OrderTask = cookingOrders.remove(orderId) ?: return
+    suspend fun deleteOrder(orderId: Int): Boolean {
+        val orderTask: OrderTask = cookingOrders.remove(orderId) ?: return false
         dishTaskScheduler.removeAll(orderTask.dishesTasks)
         orderTask.cancelOrder()
+        orderTask.unlock()
+        return true
     }
 
     suspend fun onOrderReady(orderTask: OrderTask) {
@@ -66,11 +68,13 @@ class OrderScheduler(private val orderService: OrderService) :
         return orderTask != null && orderTask.lockIfCanBeChanged()
     }
 
-    fun unlockOrder(orderId: Int): Unit = cookingOrders[orderId]!!.unlock()
+    fun unlockOrder(orderId: Int) {
+        cookingOrders[orderId]?.unlock()
+    }
 
     fun notifyFirstOrderDishStartedCooking(order: OrderTask, dish: DishTask) {
         assert(dish.orderTask.orderId == order.orderId)
-        debugLog(
+        logDebug(
             "orderId=${order.orderId}, dishId=${dish.dishId}",
             "OrderScheduler::notifyFirstOrderDishStartedCooking()"
         )
@@ -84,13 +88,13 @@ class OrderScheduler(private val orderService: OrderService) :
                     val cookedOrderTask: OrderTask = cookedOrdersChannel.receive()
                     assert(cookedOrderTask.ready())
                     val orderId: Int = cookedOrderTask.orderId
-                    debugLog({ "Removing ready task with id $orderId" }, "createCookedOrdersThread()::runBlocking")
+                    logDebug({ "Removing ready task with id $orderId" }, "createCookedOrdersThread()::runBlocking")
                     if (cookingOrders.remove(orderId) == null) {
-                        errorLog("Incorrect order task $orderId", "createCookedOrdersThread()::runBlocking")
+                        logError("Incorrect order task $orderId", "createCookedOrdersThread()::runBlocking")
                     }
                     orderService.onReadyOrder(orderId)
                 } catch (ex: Throwable) {
-                    errorLog("createCookedOrdersThread()::runBlocking", ex)
+                    logError("createCookedOrdersThread()::runBlocking", ex)
                 }
             }
         }
@@ -104,7 +108,7 @@ class OrderScheduler(private val orderService: OrderService) :
             try {
                 cookedOrdersHandleThread.interrupt()
             } catch (ex: Throwable) {
-                debugLog(
+                logDebug(
                     { "Could not stop cooking thread ${cookedOrdersHandleThread.name}" },
                     "OrderScheduler::destroy()",
                     ex

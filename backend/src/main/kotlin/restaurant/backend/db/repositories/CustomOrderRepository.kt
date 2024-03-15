@@ -14,7 +14,7 @@ interface CustomOrderRepository {
 
     @Modifying
     @Transactional(rollbackFor = [Throwable::class], readOnly = false)
-    fun addDishToOrder(orderAddDishDto: OrderAddDishDto): OrderEntity
+    fun addDishToOrder(orderAddDishDto: OrderAddDishDto)
 
     @Modifying
     @Transactional(rollbackFor = [Throwable::class], readOnly = false)
@@ -22,5 +22,5 @@ interface CustomOrderRepository {
 
     @Modifying
     @Transactional(rollbackFor = [Throwable::class], readOnly = false)
-    fun onReadyOrderPaid(order: OrderEntity)
+    fun onReadyOrderPaid(orderId: Int)
 }

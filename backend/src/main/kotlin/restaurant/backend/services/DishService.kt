@@ -11,19 +11,24 @@ import java.util.*
 class DishService(private val dishRepository: DishRepository)
         : LoggingHelper<DishService>(DishService::class.java) {
 
-    fun addDish(dishDto: DishDto): Pair<Int?, String> {
+    fun addDish(dishDto: DishDto): Pair<Boolean, String> {
+        val addingCount = dishDto.quantity
+        if (addingCount <= 0)
+            return false to "Can't add dish: non-positive quantity"
+
         try {
-            return dishRepository.save(dishDto.toDishWithoutId()).dishId to ""
+            val dishId: Int = dishRepository.save(dishDto.toDishWithoutId()).dishId!!
+            return true to "Added $addingCount dishes with id $dishId and name ${dishDto.name}"
         } catch (ex: org.springframework.dao.DataIntegrityViolationException) {
-            debugLogOnIncorrectData(dishDto, "DishService::tryAddDish(DishDto)", ex)
+            logDebugOnIncorrectData(dishDto, "DishService::tryAddDish(DishDto)", ex)
             val message = ex.localizedMessage
             if (message.contains("value violates unique constraint")) {
-                return null to "dish ${dishDto.name} already exists"
+                return false to "Can't add dish: dish with name ${dishDto.name} already exists"
             }
         } catch (ex: Throwable) {
-            errorLog(dishDto.toString(), "DishService::tryAddDish(DishDto)", ex)
+            logError(dishDto.toString(), "DishService::tryAddDish(DishDto)", ex)
         }
-        return null to "incorrect data"
+        return false to "Can't add dish: incorrect data provided"
     }
 
     fun retrieveAllDishes(): List<DishDto> =
@@ -64,7 +69,7 @@ class DishService(private val dishRepository: DishRepository)
             dishRepository.updatePriceById(dishEntity.dishId!!, newPrice)
             return true to "Set price for the dish with name $dishName equal to $newPrice"
         } catch (ex: Throwable) {
-            debugLogOnIncorrectData(updateDishPriceDto, "DishService::updateDishPriceByName(UpdateDishPriceDto)", ex)
+            logDebugOnIncorrectData(updateDishPriceDto, "DishService::updateDishPriceByName(UpdateDishPriceDto)", ex)
             false to "Can't update dish: incorrect new price for the dish provided"
         }
     }
@@ -82,7 +87,7 @@ class DishService(private val dishRepository: DishRepository)
             }
             return true to "Set quantity of the dish with name $dishName equal to $newQuantity"
         } catch (ex: Throwable) {
-            debugLogOnIncorrectData(updateDishQuantityDto, "DishService::updateDishQuantityByName(UpdateDishQuantityDto)", ex)
+            logDebugOnIncorrectData(updateDishQuantityDto, "DishService::updateDishQuantityByName(UpdateDishQuantityDto)", ex)
             false to "Can't update dish: incorrect new quantity for the dish provided"
         }
     }
@@ -95,7 +100,7 @@ class DishService(private val dishRepository: DishRepository)
             dishRepository.updateCookTimeById(dishEntity.dishId!!, newCookTime)
             return true to "Set cook time of the dish with name $dishName equal to $newCookTime"
         } catch (ex: Throwable) {
-            debugLogOnIncorrectData(updateDishCookTimeDto, "DishService::updateDishCookTimeByName(UpdateDishCookTimeDto)", ex)
+            logDebugOnIncorrectData(updateDishCookTimeDto, "DishService::updateDishCookTimeByName(UpdateDishCookTimeDto)", ex)
             false to "Can't update dish: incorrect new cook time for the dish provided"
         }
     }
@@ -108,7 +113,7 @@ class DishService(private val dishRepository: DishRepository)
             dishRepository.updateNameById(dishEntity.dishId!!, newName)
             true to "Set name of the dish with old name $dishName equal to $newName"
         } catch (ex: Throwable) {
-            debugLogOnIncorrectData(updateDishNameDto, "DishService::updateDishNameByName(UpdateDishNameDto)", ex)
+            logDebugOnIncorrectData(updateDishNameDto, "DishService::updateDishNameByName(UpdateDishNameDto)", ex)
             false to "Can't update dish: incorrect new name for the dish provided"
         }
     }

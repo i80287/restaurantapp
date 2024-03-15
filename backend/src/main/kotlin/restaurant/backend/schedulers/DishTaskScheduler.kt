@@ -62,7 +62,7 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
                     } catch (ex: InterruptedException) {
                         break
                     } catch (ex: Throwable) {
-                        errorLog("createPriorityUpdateThread()::Thread()::run()", ex)
+                        logError("createPriorityUpdateThread()::Thread()::run()", ex)
                     }
                 }
             }
@@ -139,10 +139,10 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
                             printDishEndedCooking(dishTask)
                         }
                     } catch (ex: Throwable) {
-                        errorLog("Error cooking new dish", "OrderScheduler::createDishCookingThread()", ex)
+                        logError("Error cooking new dish", "OrderScheduler::createDishCookingThread()", ex)
                     }
                 }
-                infoLog("$threadName exited", "OrderScheduler::createDishCookingThread()")
+                logInfo("$threadName exited", "OrderScheduler::createDishCookingThread()")
             }
 
             private fun printDishStartedCooking(dishTask: DishTask) {
@@ -175,7 +175,7 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             dishTask.increasePriority()
             dishTasksQueue.offer(dishTask)
         } else {
-            infoLog("Priority update: task not found in the dishTasksQueue", "DishTaskScheduler::updateDishTaskPriority(DishTask)")
+            logInfo("Priority update: task not found in the dishTasksQueue", "DishTaskScheduler::updateDishTaskPriority(DishTask)")
         }
     }
 
@@ -183,7 +183,7 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
         try {
             priorityUpdateThread.interrupt()
         } catch (ex: Throwable) {
-            debugLog(
+            logDebug(
                 { "Could not stop priorityUpdateThread ${priorityUpdateThread.name}" },
                 "DishTaskScheduler::destroy()",
                 ex
@@ -196,7 +196,7 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
                 try {
                     cookingThread.interrupt()
                 } catch (ex: Throwable) {
-                    debugLog(
+                    logDebug(
                         { "Could not stop cookingThread ${cookingThread.name}" },
                         "DishTaskScheduler::destroy()",
                         ex

@@ -22,7 +22,7 @@ class DishController(private val dishService: DishService) : ControllerHelper() 
 
     @PostMapping("/add")
     fun addDish(@RequestBody dish: DishDto): ResponseEntity<String> =
-        responseFromAddedId(dishService.addDish(dish))
+        responseFromBoolStatus(dishService.addDish(dish))
 
     @DeleteMapping("/delete/byid/{id}")
     fun deleteDishById(@PathVariable("id") dishId: Int): ResponseEntity<String> =

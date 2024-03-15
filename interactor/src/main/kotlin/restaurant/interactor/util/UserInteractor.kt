@@ -6,6 +6,32 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class UserInteractor(private val service: BackendRequestService) {
+    companion object {
+        private const val NEXT_COMMAND_PROMPT: String =
+            "Write number of the option you want to peek:\n" +
+            "   Admin options:\n" +
+            "     1. Add new dish to the restaurant menu\n" +
+            "     2. Remove dish from the restaurant menu\n" +
+            "     3. Update price of the dish\n" +
+            "     4. Update quantity of the dish in the restaurant menu\n" +
+            "     5. Update cook time of the dish\n" +
+            "     6. Update name of the dish\n" +
+            "     7. Get all users\n" +
+            "     8. Get user by id\n" +
+            "     9. Get user by login\n" +
+            "     10. Add user\n" +
+            "     11. Delete user by id\n" +
+            "     12. Delete user by login\n" +
+            "   User options:\n" +
+            "     13. Make new order\n" +
+            "     14. Add dish to the order\n" +
+            "     15. Remove dish from the order\n" +
+            "     16. Get info about the order\n" +
+            "     17. Pay for the order\n" +
+            "     18. Exit\n" +
+            "> "
+    }
+
     private enum class UserState {
         ChooseOption, SignIn, SignUp, LoggedIn, ExitRequested
     }
@@ -16,6 +42,13 @@ class UserInteractor(private val service: BackendRequestService) {
         UpdateDishPrice,
         UpdateDishQuantity,
         UpdateDishCookTime,
+        UpdateDishName,
+        GetAllUsers,
+        GetUserById,
+        GetUserByLogin,
+        AddUser,
+        DeleteUserId,
+        DeleteUserLogin,
         MakeOrder,
         AddDishToOrder,
         RemoveDishFromOrder,
@@ -43,65 +76,59 @@ class UserInteractor(private val service: BackendRequestService) {
 
     fun nextCommand(): UserCommand {
         while (true) {
-            print(
-                "Write number of the option you want to peek:\n" +
-                        "   Admin options:\n" +
-                        "     1. Add new dish to the restaurant menu\n" +
-                        "     2. Remove dish from the restaurant menu\n" +
-                        "     3. Update price of the dish\n" +
-                        "     4. Update quantity of the dish in the restaurant\n" +
-                        "     5. Update cook time of the dish\n" +
-                        "   User options:\n" +
-                        "     6. Make new order\n" +
-                        "     7. Add dish to the order\n" +
-                        "     8. Remove dish from the order\n" +
-                        "     9. Get info about the order\n" +
-                        "     10. Pay for the order\n" +
-                        "     11. Exit\n" +
-                        "> "
-            )
+            print(NEXT_COMMAND_PROMPT)
             System.out.flush()
-
-            val userInput: Int? = readIntOrNull()
-            when (userInput) {
-                1 -> return UserCommand.AddDish
-                2 -> return UserCommand.RemoveDish
-                3 -> return UserCommand.UpdateDishPrice
-                4 -> return UserCommand.UpdateDishQuantity
-                5 -> return UserCommand.UpdateDishCookTime
-                6 -> return UserCommand.MakeOrder
-                7 -> return UserCommand.AddDishToOrder
-                8 -> return UserCommand.RemoveDishFromOrder
-                9 -> return UserCommand.GetOrderInfo
-                10 -> return UserCommand.PayForTheOrder
-                11 -> return UserCommand.Exit
+            return when (readIntOrNull()) {
+                1 -> UserCommand.AddDish
+                2 -> UserCommand.RemoveDish
+                3 -> UserCommand.UpdateDishPrice
+                4 -> UserCommand.UpdateDishQuantity
+                5 -> UserCommand.UpdateDishCookTime
+                6 -> UserCommand.UpdateDishName
+                7 -> UserCommand.GetAllUsers
+                8 -> UserCommand.GetUserById
+                9 -> UserCommand.GetUserByLogin
+                10 -> UserCommand.AddUser
+                11 -> UserCommand.DeleteUserId
+                12 -> UserCommand.DeleteUserLogin
+                13 -> UserCommand.MakeOrder
+                14 -> UserCommand.AddDishToOrder
+                15 -> UserCommand.RemoveDishFromOrder
+                16 -> UserCommand.GetOrderInfo
+                17 -> UserCommand.PayForTheOrder
+                18 -> UserCommand.Exit
+                else -> {
+                    println("Unknown option, expected number from 1 to 18. Please, try again")
+                    continue
+                }
             }
-
-            println("Unknown option, expected number from 1 to 11. Please, try again")
         }
     }
 
-    fun notifyExit() = println("Exit requested by user")
+    fun notifyExit() = notify("Exit requested by user")
 
     fun requestPositiveInt(prompt: String): Int = requestIntAtLeast(1, prompt)
 
     fun requestIntAtLeastOrDefault(minValue: Int, prompt: String, default: Int): Int {
-        val msg = "$prompt\n(input integer number >= $minValue or Enter for the default $default)\n> "
+        val msg = "$prompt\n(input integer >= $minValue or Enter for the default $default)\n> "
         while (true) {
             print(msg)
             System.out.flush()
 
-            val num: Int = readIntOrNull() ?: default
-            if (num >= minValue) {
-                return num
+            val userInput: String = readlnOrNull() ?: return default
+            try {
+                val num = userInput.toInt()
+                if (num >= minValue) {
+                    return num
+                }
+            } catch (_: Throwable) {
             }
-
             println("Incorrect input. Please, try again")
         }
     }
 
     fun requestIntAtLeast(minValue: Int, prompt: String): Int {
-        val msg = "$prompt\n(input integer number >= $minValue)\n> "
+        val msg = "$prompt\n(input integer >= $minValue)\n> "
         while (true) {
             print(msg)
             System.out.flush()
@@ -279,22 +306,15 @@ class UserInteractor(private val service: BackendRequestService) {
     private fun handleLoginServerResponse(status: LoginResponseStatus): Boolean {
         val errorMessage = when (status) {
             LoginResponseStatus.OK -> return true
-            LoginResponseStatus.FORBIDDEN -> {
-                "Incorrect login or password"
-            }
-            LoginResponseStatus.SERVER_IS_NOT_RUNNING -> {
-                "Server is not running or not available"
-            }
-            LoginResponseStatus.UNKNOWN -> {
-                "Unknown error"
-            }
+            LoginResponseStatus.FORBIDDEN, LoginResponseStatus.INCORRECT_LOGIN_OR_PASSWORD -> "Incorrect login or password"
+            LoginResponseStatus.SERVER_IS_NOT_RUNNING -> "Server is not running or not available"
+            LoginResponseStatus.UNKNOWN -> "Unknown error"
         }
-        notifyLn(errorMessage)
+        notify(errorMessage)
         return false
     }
 
+    fun notify(prompt: String) = println(prompt)
 
-    private fun notifySignedIn() = notifyLn("Signed in successfully")
-
-    private fun notifyLn(prompt: String) = println(prompt)
+    private fun notifySignedIn() = notify("Signed in successfully")
 }

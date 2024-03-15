@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.transaction.annotation.Transactional
+import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderDishWeakEntity
 import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.db.repositories.CustomOrderRepository
@@ -25,7 +26,7 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
                 Int::class.java
             )
             .singleResult as Int
-        debugLog("Added order with id $orderId", "CustomOrderRepositoryImpl::addOrder()")
+        logDebug("Added order with id $orderId", "CustomOrderRepositoryImpl::addOrder()")
 
         var count: Int = orderDto.orderDishes.size
         assert(count > 0)
@@ -56,23 +57,21 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
 
     @Modifying
     @Transactional(rollbackFor = [Throwable::class], readOnly = false)
-    override fun addDishToOrder(orderAddDishDto: OrderAddDishDto): OrderEntity {
+    override fun addDishToOrder(orderAddDishDto: OrderAddDishDto) {
         val addingCount: Int = orderAddDishDto.addingCount
         assert(addingCount > 0)
         val dishId: Int = orderAddDishDto.dishId
         val orderId: Int = orderAddDishDto.orderId
-        return entityManager
+        entityManager
             .createNativeQuery(
                 """
                 UPDATE dishes SET quantity = quantity - $addingCount WHERE dish_id = $dishId;
                 INSERT INTO order_dishes(order_id, dish_id, ordered_count)
                 VALUES ($orderId, $dishId, $addingCount)
                 ON CONFLICT DO UPDATE SET ordered_count = ordered_count + excluded.adding_count;
-                UPDATE orders SET is_ready = FALSE WHERE order_id = $orderId RETURNING *;
-                """.trimIndent(),
-                OrderEntity::class.java
-            )
-            .singleResult as OrderEntity
+                UPDATE orders SET is_ready = FALSE WHERE order_id = $orderId;
+                """.trimIndent())
+            .executeUpdate()
     }
 
     @Modifying
@@ -113,9 +112,7 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
 
     @Modifying
     @Transactional(rollbackFor = [Throwable::class], readOnly = false)
-    override fun onReadyOrderPaid(order: OrderEntity) {
-        assert(order.isReady)
-        val orderId: Int = order.orderId!!
+    override fun onReadyOrderPaid(orderId: Int) {
         val sqlStrQuery =
             """
             WITH od AS (DELETE FROM order_dishes WHERE order_id = $orderId RETURNING dish_id, ordered_count)

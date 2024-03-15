@@ -32,7 +32,8 @@ class JwtProvider(
     fun generateAccessToken(user: UserEntity): String {
         val now: LocalDateTime = LocalDateTime.now()
         val accessExpirationInstant: Instant = now
-            .plusMinutes(10)
+            // .plusMinutes(10)
+            .plusSeconds(30)
             .atZone(ZoneId.systemDefault())
             .toInstant()
         val accessExpiration: Date = Date.from(accessExpirationInstant)
