@@ -36,6 +36,6 @@ class UserService(private val userRepository: UserRepository, private val passwo
         )).userId
     } catch (ex: Throwable) {
         debugLogOnIncorrectData(user, "UserService::addUser(UserDto)", ex)
-        null
+        null to "Can't"
     }
 }

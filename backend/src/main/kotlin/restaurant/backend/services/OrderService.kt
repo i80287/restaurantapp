@@ -38,13 +38,13 @@ class OrderService @Autowired constructor(
         }
     }
 
-    final suspend fun addOrder(orderDto: OrderDto): Int? {
+    final suspend fun addOrder(orderDto: OrderDto): Pair<Int?, String> {
         if (orderDto.orderDishes.size <= 0) {
-            return null
+            return null to "Can't add order without dishes"
         }
         for (orderDishDto: OrderDishDto in orderDto.orderDishes) {
             if (orderDishDto.orderedCount <= 0) {
-                return null
+                return null to "Can't add dish with non-positive count (dish id=${orderDishDto.dishId})"
             }
         }
 
@@ -55,22 +55,22 @@ class OrderService @Autowired constructor(
         } catch (ex: org.springframework.dao.DataIntegrityViolationException) {
             // Incorrect data from the user
             debugLogOnIncorrectData(orderDto, "OrderService::addOrder(OrderDto)", ex)
-            return null
+            return null to "Can't add order: incorrect data provided"
         } catch (ex: Throwable) {
             errorLog("OrderService::addOrder(OrderDto)", ex)
-            return null
+            return null to "Can't add order $orderDto"
         }
 
         val orderId: Int = order.orderId!!
         return try {
             orderScheduler.addOrder(order)
-            orderId
+            orderId to ""
         } catch (ex: Throwable) {
             withContext(Dispatchers.IO) {
                 orderRepository.deleteById(orderId)
             }
             errorLog("Could not add order $order", "OrderScheduler::addOrder(OrderEntity)", ex)
-            null
+            null to "Was not able to add order"
         }
     }
 
@@ -99,7 +99,7 @@ class OrderService @Autowired constructor(
                 && try {
             val updatedOrderEntity: OrderEntity = withContext(Dispatchers.IO) {
                 orderRepository.addDishToOrder(orderAddDishDto)
-            } ?: return false
+            }
 
             val dishEntity: DishEntity = updatedOrderEntity
                 .dishes
@@ -126,12 +126,10 @@ class OrderService @Autowired constructor(
                     val deletedSuccessfully: Boolean = withContext(Dispatchers.IO) {
                         orderRepository.deleteDishFromOrder(orderDeleteDishDto)
                     }
-                    if (!deletedSuccessfully) {
-                        return false
+                    if (deletedSuccessfully) {
+                        orderScheduler.cancelDishes(orderDeleteDishDto)
                     }
-
-                    orderScheduler.cancelDishes(orderDeleteDishDto)
-                    true
+                    deletedSuccessfully
                 } catch (ex: UnsupportedOperationException) {
                     errorLog("OrderService::deleteDishFromOrder(OrderDeleteDishDto)", ex)
                     false

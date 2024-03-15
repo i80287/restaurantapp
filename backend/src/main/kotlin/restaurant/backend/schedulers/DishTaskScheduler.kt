@@ -30,11 +30,15 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
         }
     }
 
-    suspend fun offer(dishTask: DishTask) {
-        dishTasksQueue.offer(dishTask)
+    suspend fun addAll(dishTasks: ArrayList<DishTask>) {
+        for (dishTask: DishTask in dishTasks) {
+            dishTasksQueue.offer(dishTask)
+        }
         val currentTime: Long = System.currentTimeMillis()
         priorityUpdateStateLock.withLock {
-            priorityUpdateTasksQueue.offer(PriorityUpdateEntry(currentTime, dishTask))
+            for (dishTask: DishTask in dishTasks) {
+                priorityUpdateTasksQueue.offer(PriorityUpdateEntry(currentTime, dishTask))
+            }
         }
     }
 

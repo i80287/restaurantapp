@@ -6,7 +6,6 @@ import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDeleteDishDto
-import restaurant.backend.schedulers.OrderTask
 import restaurant.backend.services.OrderService
 import restaurant.backend.util.LoggingHelper
 import java.util.concurrent.ConcurrentHashMap
@@ -22,7 +21,7 @@ class OrderScheduler(private val orderService: OrderService) :
     private val cookedOrdersChannel: Channel<OrderTask> = Channel()
     private val cookedOrdersHandleThread: Thread = createCookedOrdersThread()
 
-    fun scheduleOrdersOnAppInitialization(orderEntities: MutableList<OrderEntity>): Unit = runBlocking {
+    fun scheduleOrdersOnAppInitialization(orderEntities: List<OrderEntity>): Unit = runBlocking {
         for (order: OrderEntity in orderEntities) {
             if (!order.isReady)
                 addOrder(order)
@@ -31,24 +30,20 @@ class OrderScheduler(private val orderService: OrderService) :
 
     suspend fun addOrder(order: OrderEntity) {
         val orderTask: OrderTask = OrderTask.createOrderTask(order = order, scheduler = this)
+        val orderId = orderTask.orderId
         debugLog(
-            { "Adding ${orderTask.dishesTasks.size} dish cooking tasks | order id = ${order.orderId}" },
+            { "Adding ${orderTask.dishesTasks.size} dish cooking tasks | order id = $orderId" },
             "OrderScheduler::addOrder()"
         )
-        for (dishTask: DishTask in orderTask.dishesTasks) {
-            debugLog("Adding new dish task with dish id ${dishTask.dishId}", "OrderScheduler::addOrder()")
-            dishTaskScheduler.offer(dishTask)
-        }
-        cookingOrders[order.orderId!!] = orderTask
-        debugLog({ "Added ${order.orderId} to the cookingOrders" }, "OrderScheduler::addOrder()")
+        dishTaskScheduler.addAll(orderTask.dishesTasks)
+        cookingOrders[orderId] = orderTask
+        debugLog({ "Added $orderId to the cookingOrders" }, "OrderScheduler::addOrder()")
     }
 
     suspend fun addDishesToOrder(dishEntity: DishEntity, orderAddDishDto: OrderAddDishDto) {
         val orderTask: OrderTask = cookingOrders[orderAddDishDto.orderId]!!
         val newDishTasks: ArrayList<DishTask> = orderTask.addDishes(dishEntity, orderAddDishDto.addingCount)
-        for (dishTask: DishTask in newDishTasks) {
-            dishTaskScheduler.offer(dishTask)
-        }
+        dishTaskScheduler.addAll(newDishTasks)
     }
 
     suspend fun cancelDishes(orderDeleteDishDto: OrderDeleteDishDto) {
@@ -102,6 +97,8 @@ class OrderScheduler(private val orderService: OrderService) :
     }
 
     fun destroy() {
+        dishTaskScheduler.destroy()
+
         cookedOrdersChannel.close()
         if (cookedOrdersHandleThread.isAlive) {
             try {
@@ -116,6 +113,5 @@ class OrderScheduler(private val orderService: OrderService) :
         }
 
         cookingOrders.clear()
-        dishTaskScheduler.destroy()
     }
 }

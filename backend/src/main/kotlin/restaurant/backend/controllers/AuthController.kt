@@ -34,10 +34,4 @@ class AuthController(@Autowired private val authService: AuthService) {
     } catch (ex: Throwable) {
         ResponseEntity.badRequest().header(ex.toString()).build()
     }
-
-    private final fun fromNullableJwtResponse(token: JwtResponse?): ResponseEntity<JwtResponse> =
-        when (token){
-            null -> ResponseEntity.badRequest().body(JwtResponse(null, null))
-            else -> ResponseEntity.ok(token)
-        }
 }

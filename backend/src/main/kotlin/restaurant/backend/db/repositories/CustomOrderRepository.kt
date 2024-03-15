@@ -2,7 +2,6 @@ package restaurant.backend.db.repositories
 
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.transaction.annotation.Transactional
-import restaurant.backend.db.entities.OrderDishEntity
 import restaurant.backend.db.entities.OrderEntity
 import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDeleteDishDto
@@ -15,7 +14,7 @@ interface CustomOrderRepository {
 
     @Modifying
     @Transactional(rollbackFor = [Throwable::class], readOnly = false)
-    fun addDishToOrder(orderAddDishDto: OrderAddDishDto): OrderEntity?
+    fun addDishToOrder(orderAddDishDto: OrderAddDishDto): OrderEntity
 
     @Modifying
     @Transactional(rollbackFor = [Throwable::class], readOnly = false)

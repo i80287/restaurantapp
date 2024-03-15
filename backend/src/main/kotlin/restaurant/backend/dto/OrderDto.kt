@@ -9,7 +9,7 @@ data class OrderDto(
     val startTime: Long? = null,
     val isReady: Boolean = false,
     val startedCooking: Boolean = false,
-    val orderDishes: HashSet<OrderDishDto> = HashSet()
+    val orderDishes: MutableList<OrderDishDto> = mutableListOf()
 ) {
     constructor(orderEntity: OrderEntity) : this(
         orderId = orderEntity.orderId!!,
@@ -17,7 +17,7 @@ data class OrderDto(
         startTime = orderEntity.startTime,
         isReady = orderEntity.isReady,
         startedCooking = orderEntity.startedCooking,
-        orderDishes = orderEntity.dishes.map { it: OrderDishEntity -> OrderDishDto(it) }.toHashSet()) {
+        orderDishes = orderEntity.dishes.map { it: OrderDishEntity -> OrderDishDto(it) }.toMutableList()) {
         assert(orderEntity.user != null)
     }
 }
