@@ -20,7 +20,7 @@ class DishController(private val dishService: DishService) : ControllerHelper() 
         responseFromNullable(dishService.retrieveDishByString(dishName))
 
     @PostMapping("/add")
-    fun addDish(@RequestBody dish: DishDto): ResponseEntity<String> = responseFromAddedId(dishService.tryAddDish(dish))
+    fun addDish(@RequestBody dish: DishDto): ResponseEntity<String> = responseFromAddedId(dishService.addDish(dish))
 
     @DeleteMapping("/delete/{id}")
     fun deleteDish(@PathVariable("id") dishId: Int): ResponseEntity<DishDto> =

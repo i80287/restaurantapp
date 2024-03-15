@@ -11,12 +11,20 @@ import java.util.*
 @Service
 class DishService(private val dishRepository: DishRepository)
         : LoggingHelper<DishService>(DishService::class.java) {
-    fun tryAddDish(dishDto: DishDto): Int? = try {
-        dishRepository.save(dishDto.toDishWithoutId()).dishId
-    } catch (ex: Throwable) {
-        debugLogOnIncorrectData(dishDto, "DishService::tryAddDish(DishDto)", ex)
-        null
-    }
+        fun addDish(dishDto: DishDto): Pair<Int?, String> {
+            try {
+                return dishRepository.save(dishDto.toDishWithoutId()).dishId to ""
+            } catch (ex: org.springframework.dao.DataIntegrityViolationException) {
+                debugLogOnIncorrectData(dishDto, "DishService::tryAddDish(DishDto)", ex)
+                val message = ex.localizedMessage
+                if (message.contains("value violates unique constraint")) {
+                    return null to "dish ${dishDto.name} already exists"
+                }
+            } catch (ex: Throwable) {
+                errorLog(dishDto.toString(), "DishService::tryAddDish(DishDto)", ex)
+            }
+            return null to "incorrect data"
+        }
 
     fun retrieveAllDishes(): List<DishDto> {
         return dishRepository.findAll().map { dish: DishEntity -> DishDto(dish) }

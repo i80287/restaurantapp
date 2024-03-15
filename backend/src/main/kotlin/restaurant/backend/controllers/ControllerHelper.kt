@@ -14,6 +14,13 @@ open class ControllerHelper {
             }
 
         @JvmStatic
+        protected inline fun <reified T : Any> responseFromAddedId(addedItemIdWithErrorString: Pair<T?, String>): ResponseEntity<String> =
+            when (val addedItemId = addedItemIdWithErrorString.first) {
+                null -> ResponseEntity<String>("could not add: ${addedItemIdWithErrorString.second}", HttpStatus.BAD_REQUEST)
+                else -> ResponseEntity<String>("new id: $addedItemId", HttpStatus.CREATED)
+            }
+
+        @JvmStatic
         protected fun responseFromBoolStatus(status: Boolean): ResponseEntity<String> =
             when (status) {
                 true -> ResponseEntity.ok("success")

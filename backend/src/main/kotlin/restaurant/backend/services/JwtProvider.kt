@@ -32,7 +32,7 @@ class JwtProvider(
     fun generateAccessToken(user: UserEntity): String {
         val now: LocalDateTime = LocalDateTime.now()
         val accessExpirationInstant: Instant = now
-            .plusMinutes(10)
+            .plusMinutes(1)
             .atZone(ZoneId.systemDefault())
             .toInstant()
         val accessExpiration: Date = Date.from(accessExpirationInstant)
@@ -67,6 +67,7 @@ class JwtProvider(
     }
 
     fun validateToken(token: String, jwtSecret: Key): Boolean {
+        val (message, exception) =
         try {
             Jwts.parserBuilder()
                 .setSigningKey(jwtSecret)
@@ -74,16 +75,17 @@ class JwtProvider(
                 .parseClaimsJws(token)
             return true
         } catch (expEx: ExpiredJwtException) {
-            log.error("Token expired", expEx)
+            "Token expired" to expEx
         } catch (unsEx: UnsupportedJwtException) {
-            log.error("Unsupported jwt", unsEx)
+            "Unsupported jwt" to unsEx
         } catch (mjEx: MalformedJwtException) {
-            log.error("Malformed jwt", mjEx)
+            "Malformed jwt" to mjEx
         } catch (sEx: SignatureException) {
-            log.error("Invalid signature", sEx)
+            "Invalid signature" to sEx
         } catch (e: Throwable) {
-            log.error("Invalid token", e)
+            "Invalid token" to e
         }
+        log.info(message, exception)
         return false
     }
 
