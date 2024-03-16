@@ -69,7 +69,7 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
                 UPDATE dishes SET quantity = quantity - $addingCount WHERE dish_id = $dishId;
                 INSERT INTO order_dishes(order_id, dish_id, ordered_count)
                 VALUES ($orderId, $dishId, $addingCount)
-                ON CONFLICT DO UPDATE SET ordered_count = ordered_count + excluded.adding_count;
+                ON CONFLICT(order_id, dishId) DO UPDATE SET ordered_count = ordered_count + excluded.adding_count;
                 UPDATE orders SET is_ready = FALSE WHERE order_id = $orderId;
                 """.trimIndent()
             )

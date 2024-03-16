@@ -155,7 +155,7 @@ class DishService(private val dishRepository: DishRepository) : LoggingHelper<Di
         val newCookTime = updateDishCookTimeDto.newCookTime
         return try {
             dishRepository.updateCookTimeById(dishEntity.dishId!!, newCookTime)
-            return true to "Set cook time of the dish with name $dishName equal to $newCookTime"
+            return true to "Set cook time of the dish with name $dishName equal to $newCookTime ms"
         } catch (ex: Throwable) {
             logDebugOnIncorrectData(
                 updateDishCookTimeDto,
