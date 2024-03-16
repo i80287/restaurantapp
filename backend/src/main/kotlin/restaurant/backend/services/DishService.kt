@@ -1,5 +1,6 @@
 package restaurant.backend.services
 
+import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
 import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.repositories.DishRepository
@@ -9,6 +10,59 @@ import java.util.*
 
 @Service
 class DishService(private val dishRepository: DishRepository) : LoggingHelper<DishService>(DishService::class.java) {
+
+    @PostConstruct
+    fun addSampleDishesOnAppInitialization() {
+        val sampleDishes = arrayOf(
+            DishEntity(
+                name = "apple",
+                quantity = 100,
+                cookTime = 10000L,
+                price = 2
+            ),
+            DishEntity(
+                name = "bread",
+                quantity = 50,
+                cookTime = 5000L,
+                price = 2
+            ),
+            DishEntity(
+                name = "guacamole",
+                quantity = 10,
+                cookTime = 20000L,
+                price = 8
+            ),
+            DishEntity(
+                name = "cake",
+                quantity = 10,
+                cookTime = 120000L,
+                price = 10
+            ),
+            DishEntity(
+                name = "water",
+                quantity = 100,
+                cookTime = 5000L,
+                price = 2
+            ),
+            DishEntity(
+                name = "chicken",
+                quantity = 20,
+                cookTime = 300000L,
+                price = 8
+            ),
+            DishEntity(
+                name = "fried potato",
+                quantity = 30,
+                cookTime = 60000L,
+                price = 4
+            ),
+        )
+        for (dishEntity in sampleDishes) {
+            if (dishRepository.findByName(dishEntity.name) == null) {
+                dishRepository.save(dishEntity)
+            }
+        }
+    }
 
     fun addDish(dishDto: DishDto): Pair<Boolean, String> {
         val addingCount = dishDto.quantity
@@ -31,7 +85,7 @@ class DishService(private val dishRepository: DishRepository) : LoggingHelper<Di
     }
 
     fun retrieveAllDishes(): List<DishDto> =
-        dishRepository.findAll().map { dish: DishEntity -> DishDto(dish) }
+        dishRepository.findAllByOrderByDishIdAsc().map { dish: DishEntity -> DishDto(dish) }
 
     fun retrieveDishById(dishId: Int): DishDto? {
         val dishEntity: Optional<DishEntity> = dishRepository.findById(dishId)

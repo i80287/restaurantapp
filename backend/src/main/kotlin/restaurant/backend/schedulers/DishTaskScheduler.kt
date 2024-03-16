@@ -10,14 +10,12 @@ import restaurant.backend.util.LoggingHelper
 import java.util.PriorityQueue
 import java.util.concurrent.PriorityBlockingQueue
 
-class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::class.java) {
-    companion object {
-        private const val PRIORITY_UPDATE_CYCLE_TIMEOUT_MILLISECONDS = 2_000L
-        private const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 20_000L
-        private const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
-        private const val TASK_SCHEDULER_DEBUG_PRINTING: Boolean = false
-    }
+private const val PRIORITY_UPDATE_CYCLE_TIMEOUT_MILLISECONDS = 6_000L
+private const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 24_000L
+private const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
+private const val TASK_SCHEDULER_DEBUG_PRINTING: Boolean = true
 
+class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::class.java) {
     private val priorityUpdateStateLock: Mutex = Mutex()
     private val dishTasksQueue = PriorityBlockingQueue<DishTask>()
     private val priorityUpdateTasksQueue = PriorityQueue<PriorityUpdateEntry>()
@@ -99,11 +97,11 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             private fun printTimeUpdateMessage(dishTask: DishTask, timePassed: Long) {
                 println(
                     """
-                    PRIORITY UPDATE SCHEDULER MESSAGE: peeked task
+                    PRIORITY UPDATE SCHEDULER DEBUG MESSAGE: peeked task
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
-                        Priority: ${dishTask.priority}
+                        Raw priority: ${dishTask.priority}
                         Passed time since last update: $timePassed ms
                     """.trimIndent()
                 )
@@ -112,11 +110,11 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             private fun printPriorityUpdateMessage(dishTask: DishTask) {
                 println(
                     """
-                    PRIORITY UPDATE SCHEDULER MESSAGE: updating priority
+                    PRIORITY UPDATE SCHEDULER DEBUG MESSAGE: updating priority
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
-                        Priority: ${dishTask.priority}
+                        Raw priority: ${dishTask.priority}
                         """.trimIndent()
                 )
             }
@@ -152,11 +150,11 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             private fun printDishStartedCooking(dishTask: DishTask) {
                 println(
                     """
-                    DISH COOKING SCHEDULER MESSAGE: started cooking dish
+                    DISH COOKING SCHEDULER DEBUG MESSAGE: started cooking dish
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
-                        Priority: ${dishTask.priority}
+                        Raw priority: ${dishTask.priority}
                         """.trimIndent()
                 )
             }
@@ -164,11 +162,11 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             private fun printDishEndedCooking(dishTask: DishTask) {
                 println(
                     """
-                    DISH COOKING SCHEDULER MESSAGE: ended cooking dish
+                    DISH COOKING SCHEDULER DEBUG MESSAGE: ended cooking dish
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
-                        Priority: ${dishTask.priority}
+                        Raw priority: ${dishTask.priority}
                         """.trimIndent()
                 )
             }

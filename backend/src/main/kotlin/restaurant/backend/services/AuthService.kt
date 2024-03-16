@@ -30,7 +30,7 @@ class AuthService @Autowired constructor(
             val accessToken = jwtProvider.generateAccessToken(user)
             val refreshToken = jwtProvider.generateRefreshToken(user)
             refreshStorage[user.login] = refreshToken
-            return JwtResponse(accessToken, refreshToken)
+            return JwtResponse(accessToken, refreshToken, user.userId!!)
         }
 
         throw AuthException("Incorrect password")
@@ -43,7 +43,7 @@ class AuthService @Autowired constructor(
             val login: String = claims.subject
             val savedRefreshToken: String? = refreshStorage[login]
             if (savedRefreshToken != null && savedRefreshToken == refreshToken) {
-                return JwtResponse(jwtProvider.generateAccessToken(retrieveUserOrThrow(login)), null)
+                return JwtResponse(jwtProvider.generateAccessToken(retrieveUserOrThrow(login)), null, null)
             }
         }
 
@@ -61,7 +61,7 @@ class AuthService @Autowired constructor(
                 val accessToken = jwtProvider.generateAccessToken(user)
                 val newRefreshToken = jwtProvider.generateRefreshToken(user)
                 refreshStorage[user.login] = newRefreshToken
-                return JwtResponse(accessToken, newRefreshToken)
+                return JwtResponse(accessToken, newRefreshToken, null)
             }
         }
 

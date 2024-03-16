@@ -25,14 +25,11 @@ data class OrderEntity(
     @Column(name = "is_ready", nullable = false, updatable = true)
     var isReady: Boolean = false,
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order")
     val dishes: MutableList<OrderDishEntity> = mutableListOf(),
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
     var user: UserEntity? = null,
-) {
-    override fun toString(): String {
-        return "OrderEntity(orderId=$orderId,userId=$userId,startTime=$startTime,startedCooking=$startedCooking,isReady=$isReady,dishes=${dishes.size},user=${user})"
-    }
-}
+)
+

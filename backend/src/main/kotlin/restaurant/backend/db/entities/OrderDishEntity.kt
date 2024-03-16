@@ -25,11 +25,11 @@ data class OrderDishEntity(
     @Column(name = "ordered_count", nullable = false)
     var orderedCount: Int,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", referencedColumnName = "order_id", insertable = false, updatable = false)
     val order: OrderEntity? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "dish_id", referencedColumnName = "dish_id", insertable = false, updatable = false)
     val dish: DishEntity? = null,
 )

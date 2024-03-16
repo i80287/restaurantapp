@@ -26,10 +26,6 @@ data class UserEntity(
     @Column(name = "user_role", nullable = false)
     val role: Role,
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
     val orders: MutableList<OrderEntity> = mutableListOf(),
-) {
-    override fun toString(): String {
-        return "UserEntity(userId=$userId,login=$login,passwordHash=$passwordHash,role=$role,orders=${orders.size})"
-    }
-}
+)

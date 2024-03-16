@@ -37,10 +37,16 @@ class OrderService @Autowired constructor(
     }
 
     final fun retrieveAllOrders(): List<OrderDto> =
-        orderRepository.findAllByOrderByOrderIdAsc().map { order: OrderEntity -> OrderDto(order) }
+        orderRepository.findAllByOrderByOrderIdAscStartedCookingAsc().map { order: OrderEntity -> OrderDto(order) }
 
-    final fun retrieveAllUserOrders(userId: Int): List<OrderDto> =
-        orderRepository.findAllByUserIdOrderByOrderIdAsc(userId).map { order: OrderEntity -> OrderDto(order) }
+    final fun retrieveAllUserOrders(userId: Int): List<OrderDto> {
+        return try {
+            orderRepository.findAllByUserIdOrderByOrderIdAsc(userId).map { order: OrderEntity -> OrderDto(order) }
+        } catch (ex: Throwable) {
+            logError("", ex)
+            throw ex
+        }
+    }
 
     final fun retrieveOrderById(orderId: Int): OrderDto? {
         val orderEntity: Optional<OrderEntity> = orderRepository.findById(orderId)
@@ -81,17 +87,21 @@ class OrderService @Autowired constructor(
             withContext(Dispatchers.IO) {
                 orderRepository.deleteById(orderId)
             }
-            logError("Could not add order $order", "OrderScheduler::addOrder(OrderEntity)", ex)
+            logError("Could not add order ${order.orderId}", "OrderScheduler::addOrder(OrderEntity)", ex)
             false to "Was not able to add order"
         }
     }
 
     final suspend fun deleteOrder(orderId: Int, deleterLogin: String): Pair<Boolean, String> {
         val response = verifyUserOwnsOrder(deleterLogin, orderId)
-        if (!response.first) {
-            return response
+        val userOwnsOrder = response.first
+        return when {
+            userOwnsOrder -> forceDeleteOrder(orderId)
+            else -> response
         }
+    }
 
+    final suspend fun forceDeleteOrder(orderId: Int): Pair<Boolean, String> {
         if (!orderScheduler.lockOrderIfCanBeChanged(orderId))
             return false to "Can't delete ready or not existing order"
 
@@ -105,7 +115,7 @@ class OrderService @Autowired constructor(
             logError("OrderService::deleteOrder(int)", ex)
             false to "Can't delete order: internal server error"
         } finally {
-            // Order is not unlocked intentionally as it was deleted
+        // Order is not unlocked intentionally as it was deleted
         }
     }
 

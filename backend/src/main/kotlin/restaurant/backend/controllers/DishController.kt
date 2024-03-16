@@ -9,7 +9,7 @@ import restaurant.backend.services.DishService
 @RequestMapping("/dishes")
 class DishController(private val dishService: DishService) : ControllerHelper() {
     @GetMapping("/get/all")
-    fun getDishes(): ResponseEntity<List<DishDto>> =
+    fun getAllDishes(): ResponseEntity<List<DishDto>> =
         ResponseEntity.ok(dishService.retrieveAllDishes())
 
     @GetMapping("/get/byid/{id}")
@@ -32,19 +32,19 @@ class DishController(private val dishService: DishService) : ControllerHelper() 
     fun deleteDishByName(@PathVariable("name") dishName: String): ResponseEntity<String> =
         responseFromBoolStatus(dishService.deleteDishByName(dishName))
 
-    @PatchMapping("/update/price")
-    fun updateDishPrice(updateDishPriceDto: UpdateDishPriceDto): ResponseEntity<String> =
+    @PostMapping("/update/price")
+    fun updateDishPrice(@RequestBody updateDishPriceDto: UpdateDishPriceDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishPriceByName(updateDishPriceDto))
 
-    @PatchMapping("/update/quantity")
-    fun updateDishQuantity(updateDishQuantityDto: UpdateDishQuantityDto): ResponseEntity<String> =
+    @PostMapping("/update/quantity")
+    fun updateDishQuantity(@RequestBody updateDishQuantityDto: UpdateDishQuantityDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishQuantityByName(updateDishQuantityDto))
 
-    @PatchMapping("/update/cooktime")
-    fun updateDishCookTime(updateDishCookTimeDto: UpdateDishCookTimeDto): ResponseEntity<String> =
+    @PostMapping("/update/cooktime")
+    fun updateDishCookTime(@RequestBody updateDishCookTimeDto: UpdateDishCookTimeDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishCookTimeByName(updateDishCookTimeDto))
 
-    @PatchMapping("/update/name")
-    fun updateDishName(updateDishNameDto: UpdateDishNameDto): ResponseEntity<String> =
+    @PostMapping("/update/name")
+    fun updateDishName(@RequestBody updateDishNameDto: UpdateDishNameDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishNameByName(updateDishNameDto))
 }

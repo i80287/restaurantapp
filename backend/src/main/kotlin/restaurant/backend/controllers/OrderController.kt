@@ -27,7 +27,7 @@ class OrderController @Autowired constructor(
     fun getOrderById(@PathVariable("id") orderId: Int): ResponseEntity<OrderDto> =
         responseFromNullable(orderService.retrieveOrderById(orderId))
 
-    @GetMapping("/get/userordersbyid/{id}")
+    @GetMapping("/get/userorders/byid/{id}")
     fun getUserOrders(@PathVariable("id") userId: Int): ResponseEntity<List<OrderDto>> =
         ResponseEntity.ok(orderService.retrieveAllUserOrders(userId))
 
@@ -61,4 +61,9 @@ class OrderController @Autowired constructor(
     @DeleteMapping("/delete/byid/{id}")
     suspend fun deleteOrder(@PathVariable("id") orderId: Int): ResponseEntity<String> =
         responseFromBoolStatus(orderService.deleteOrder(orderId, authService.getAuthentication().principal))
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/admin/delete/byid/{id}")
+    suspend fun forceDeleteOrder(@PathVariable("id") orderId: Int): ResponseEntity<String> =
+        responseFromBoolStatus(orderService.forceDeleteOrder(orderId))
 }

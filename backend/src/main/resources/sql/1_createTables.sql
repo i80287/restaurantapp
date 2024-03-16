@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS users(
     user_id serial PRIMARY KEY,
     "login" text UNIQUE NOT NULL,
     password_hash UUID NOT NULL,
-    user_role role_type NOT NULL DEFAULT 'USER'
+    user_role role_type NOT NULL DEFAULT 'USER',
+    CONSTRAINT correct_login CHECK (length("login") >= 1)
 );
 
 CREATE TABLE IF NOT EXISTS dishes(
