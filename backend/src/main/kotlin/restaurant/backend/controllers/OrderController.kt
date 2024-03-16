@@ -29,7 +29,7 @@ class OrderController @Autowired constructor(
 
     @GetMapping("/get/userorders/byid/{id}")
     fun getUserOrders(@PathVariable("id") userId: Int): ResponseEntity<List<OrderDto>> =
-        ResponseEntity.ok(orderService.retrieveAllUserOrders(userId))
+        responseFromNullable(orderService.retrieveAllUserOrders(userId, authService.getAuthentication().principal))
 
     @PostMapping("/add")
     suspend fun addOrder(@RequestBody order: OrderDto): ResponseEntity<String> =

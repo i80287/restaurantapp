@@ -1,6 +1,7 @@
 package restaurant.backend.controllers
 
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import restaurant.backend.dto.*
 import restaurant.backend.services.DishService
@@ -20,30 +21,37 @@ class DishController(private val dishService: DishService) : ControllerHelper() 
     fun getDishByName(@PathVariable("name") dishName: String): ResponseEntity<DishDto> =
         responseFromNullable(dishService.retrieveDishByString(dishName))
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/add")
     fun addDish(@RequestBody dish: DishDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.addDish(dish))
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/delete/byid/{id}")
     fun deleteDishById(@PathVariable("id") dishId: Int): ResponseEntity<String> =
         responseFromBoolStatus(dishService.deleteDishById(dishId))
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/delete/byname/{name}")
     fun deleteDishByName(@PathVariable("name") dishName: String): ResponseEntity<String> =
         responseFromBoolStatus(dishService.deleteDishByName(dishName))
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/update/price")
     fun updateDishPrice(@RequestBody updateDishPriceDto: UpdateDishPriceDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishPriceByName(updateDishPriceDto))
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/update/quantity")
     fun updateDishQuantity(@RequestBody updateDishQuantityDto: UpdateDishQuantityDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishQuantityByName(updateDishQuantityDto))
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/update/cooktime")
     fun updateDishCookTime(@RequestBody updateDishCookTimeDto: UpdateDishCookTimeDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishCookTimeByName(updateDishCookTimeDto))
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/update/name")
     fun updateDishName(@RequestBody updateDishNameDto: UpdateDishNameDto): ResponseEntity<String> =
         responseFromBoolStatus(dishService.updateDishNameByName(updateDishNameDto))

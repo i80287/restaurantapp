@@ -39,13 +39,14 @@ class OrderService @Autowired constructor(
     final fun retrieveAllOrders(): List<OrderDto> =
         orderRepository.findAllByOrderByOrderIdAscStartedCookingAsc().map { order: OrderEntity -> OrderDto(order) }
 
-    final fun retrieveAllUserOrders(userId: Int): List<OrderDto> {
-        return try {
-            orderRepository.findAllByUserIdOrderByOrderIdAsc(userId).map { order: OrderEntity -> OrderDto(order) }
+    final fun retrieveAllUserOrders(userId: Int, issuerLogin: String): List<OrderDto>? {
+        try {
+            if (verifyUserHasThisId(issuerLogin, userId))
+                return orderRepository.findAllByUserIdOrderByOrderIdAsc(userId).map { order: OrderEntity -> OrderDto(order) }
         } catch (ex: Throwable) {
-            logError("", ex)
-            throw ex
+            logError("OrderService::retrieveAllUserOrders(int)", ex)
         }
+        return null
     }
 
     final fun retrieveOrderById(orderId: Int): OrderDto? {
@@ -115,7 +116,7 @@ class OrderService @Autowired constructor(
             logError("OrderService::deleteOrder(int)", ex)
             false to "Can't delete order: internal server error"
         } finally {
-        // Order is not unlocked intentionally as it was deleted
+            // Order is not unlocked intentionally as it was deleted
         }
     }
 
@@ -219,6 +220,13 @@ class OrderService @Autowired constructor(
 
     final fun notifyFirstOrderDishStartedCooking(orderId: Int) {
         orderRepository.setOrderStartedCooking(orderId)
+    }
+
+    private final fun verifyUserHasThisId(userLogin: String, userId: Int): Boolean {
+        val userEntity: UserEntity = userRepository.findByLogin(userLogin)
+            ?: return false
+
+        return userEntity.userId == userId
     }
 
     private final suspend fun verifyUserOwnsOrder(userLogin: String, orderId: Int): Pair<Boolean, String> {
