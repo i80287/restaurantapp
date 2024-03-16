@@ -23,7 +23,7 @@ import java.util.*
 @Component
 class JwtProvider(
     @Value("\${jwt.secret.access}") jwtAccessSecret: String,
-    @Value("\${jwt.secret.refresh}") jwtRefreshSecret: String
+    @Value("\${jwt.secret.refresh}") jwtRefreshSecret: String,
 ) : LoggingHelper<JwtProvider>(JwtProvider::class.java) {
 
     private val jwtAccessSecret: SecretKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret))
@@ -32,8 +32,7 @@ class JwtProvider(
     fun generateAccessToken(user: UserEntity): String {
         val now: LocalDateTime = LocalDateTime.now()
         val accessExpirationInstant: Instant = now
-            // .plusMinutes(10)
-            .plusSeconds(30)
+            .plusMinutes(5)
             .atZone(ZoneId.systemDefault())
             .toInstant()
         val accessExpiration: Date = Date.from(accessExpirationInstant)
@@ -69,23 +68,23 @@ class JwtProvider(
 
     fun validateToken(token: String, jwtSecret: Key): Boolean {
         val (message, exception) =
-        try {
-            Jwts.parserBuilder()
-                .setSigningKey(jwtSecret)
-                .build()
-                .parseClaimsJws(token)
-            return true
-        } catch (expEx: ExpiredJwtException) {
-            "Token expired" to expEx
-        } catch (unsEx: UnsupportedJwtException) {
-            "Unsupported jwt" to unsEx
-        } catch (mjEx: MalformedJwtException) {
-            "Malformed jwt" to mjEx
-        } catch (sEx: SignatureException) {
-            "Invalid signature" to sEx
-        } catch (e: Throwable) {
-            "Invalid token" to e
-        }
+            try {
+                Jwts.parserBuilder()
+                    .setSigningKey(jwtSecret)
+                    .build()
+                    .parseClaimsJws(token)
+                return true
+            } catch (expEx: ExpiredJwtException) {
+                "Token expired" to expEx
+            } catch (unsEx: UnsupportedJwtException) {
+                "Unsupported jwt" to unsEx
+            } catch (mjEx: MalformedJwtException) {
+                "Malformed jwt" to mjEx
+            } catch (sEx: SignatureException) {
+                "Invalid signature" to sEx
+            } catch (e: Throwable) {
+                "Invalid token" to e
+            }
         log.info(message, exception)
         return false
     }

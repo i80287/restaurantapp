@@ -5,23 +5,26 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 const val DEFAULT_TASK_PRIORITY = 10
 
-class DishTask private constructor (val dishTaskOrderUniqueId: Int,
-                                    val dishId: Int,
-                                    private val cookTime: Long,
-                                    val orderTask: OrderTask,
-                                    priority: Int)
-        : Comparable<DishTask> {
+class DishTask private constructor(
+    val dishTaskOrderUniqueId: Int,
+    val dishId: Int,
+    private val cookTime: Long,
+    val orderTask: OrderTask,
+    priority: Int,
+) : Comparable<DishTask> {
     companion object {
-        fun createTask(dishTaskOrderUniqueId: Int,
-                       dishId: Int,
-                       cookTime: Long,
-                       orderTask: OrderTask
+        fun createTask(
+            dishTaskOrderUniqueId: Int,
+            dishId: Int,
+            cookTime: Long,
+            orderTask: OrderTask,
         ): DishTask {
             return DishTask(dishTaskOrderUniqueId, dishId, cookTime, orderTask, DEFAULT_TASK_PRIORITY)
         }
     }
 
-    @Volatile var priority: Int = priority
+    @Volatile
+    var priority: Int = priority
         private set
 
     val isCooked = AtomicBoolean()
@@ -58,9 +61,9 @@ class DishTask private constructor (val dishTaskOrderUniqueId: Int,
 
     override fun equals(other: Any?): Boolean =
         other is DishTask &&
-        dishId == other.dishId &&
-        orderTask.orderId == other.orderTask.orderId &&
-        dishTaskOrderUniqueId == other.dishTaskOrderUniqueId
+                dishId == other.dishId &&
+                orderTask.orderId == other.orderTask.orderId &&
+                dishTaskOrderUniqueId == other.dishTaskOrderUniqueId
 
     override fun toString(): String {
         return "DishTask(dishId=$dishId,orderId=${orderTask.orderId},dishTaskOrderUniqueId=${dishTaskOrderUniqueId},cookTime=$cookTime,priority=$priority,cancelled=${cancelled.get()})"

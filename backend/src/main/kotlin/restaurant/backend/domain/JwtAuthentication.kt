@@ -8,20 +8,20 @@ import restaurant.backend.dto.Role
 
 @Getter
 @Setter
-class JwtAuthentication(
+data class JwtAuthentication(
     private var username: String,
     private val roles: MutableSet<Role>,
-    private var authenticated: Boolean = false
+    private var authenticated: Boolean = false,
 ) : Authentication {
-    override fun getName(): String? = null
+    override fun getName(): String = username
 
-    override fun getAuthorities(): MutableCollection<out GrantedAuthority> = roles
+    override fun getAuthorities(): MutableSet<out GrantedAuthority> = roles
 
     override fun getCredentials(): Any? = null
 
     override fun getDetails(): Any? = null
 
-    override fun getPrincipal(): Any = username
+    override fun getPrincipal(): String = username
 
     override fun isAuthenticated(): Boolean = authenticated
 

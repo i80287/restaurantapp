@@ -8,8 +8,7 @@ import restaurant.backend.util.LoggingHelper
 import java.util.*
 
 @Service
-class DishService(private val dishRepository: DishRepository)
-        : LoggingHelper<DishService>(DishService::class.java) {
+class DishService(private val dishRepository: DishRepository) : LoggingHelper<DishService>(DishService::class.java) {
 
     fun addDish(dishDto: DishDto): Pair<Boolean, String> {
         val addingCount = dishDto.quantity
@@ -87,7 +86,11 @@ class DishService(private val dishRepository: DishRepository)
             }
             return true to "Set quantity of the dish with name $dishName equal to $newQuantity"
         } catch (ex: Throwable) {
-            logDebugOnIncorrectData(updateDishQuantityDto, "DishService::updateDishQuantityByName(UpdateDishQuantityDto)", ex)
+            logDebugOnIncorrectData(
+                updateDishQuantityDto,
+                "DishService::updateDishQuantityByName(UpdateDishQuantityDto)",
+                ex
+            )
             false to "Can't update dish: incorrect new quantity for the dish provided"
         }
     }
@@ -100,7 +103,11 @@ class DishService(private val dishRepository: DishRepository)
             dishRepository.updateCookTimeById(dishEntity.dishId!!, newCookTime)
             return true to "Set cook time of the dish with name $dishName equal to $newCookTime"
         } catch (ex: Throwable) {
-            logDebugOnIncorrectData(updateDishCookTimeDto, "DishService::updateDishCookTimeByName(UpdateDishCookTimeDto)", ex)
+            logDebugOnIncorrectData(
+                updateDishCookTimeDto,
+                "DishService::updateDishCookTimeByName(UpdateDishCookTimeDto)",
+                ex
+            )
             false to "Can't update dish: incorrect new cook time for the dish provided"
         }
     }

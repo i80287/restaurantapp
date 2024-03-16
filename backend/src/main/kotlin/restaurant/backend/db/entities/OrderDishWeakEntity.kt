@@ -23,5 +23,5 @@ class OrderDishWeakEntity(
 
     @Basic(optional = false)
     @Column(name = "ordered_count", nullable = false)
-    var orderedCount: Int
+    var orderedCount: Int,
 )

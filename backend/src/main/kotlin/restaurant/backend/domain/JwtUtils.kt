@@ -1,9 +1,8 @@
-package restaurant.backend.services
+package restaurant.backend.domain
 
 import io.jsonwebtoken.Claims
 import lombok.AccessLevel
 import lombok.NoArgsConstructor
-import restaurant.backend.domain.JwtAuthentication
 import restaurant.backend.dto.Role
 import java.util.*
 

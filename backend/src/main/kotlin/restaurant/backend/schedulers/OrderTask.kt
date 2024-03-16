@@ -67,10 +67,13 @@ class OrderTask private constructor(order: OrderEntity, private val scheduler: O
             val newDishesTasks = ArrayList<DishTask>(addingCount)
             repeat(addingCount) {
                 newDishesTasks.add(
-                    DishTask.createTask(dishTaskOrderUniqueId = nextDishTaskUniqueId(),
-                                                       dishId = dishId,
-                                                       cookTime = cookTime,
-                                                       orderTask = this))
+                    DishTask.createTask(
+                        dishTaskOrderUniqueId = nextDishTaskUniqueId(),
+                        dishId = dishId,
+                        cookTime = cookTime,
+                        orderTask = this
+                    )
+                )
             }
             dishesTasks.addAll(newDishesTasks)
             assert(dishesTasks.size == totalDishesCount())
@@ -212,7 +215,7 @@ class OrderTask private constructor(order: OrderEntity, private val scheduler: O
 
     override fun equals(other: Any?): Boolean =
         other is OrderTask &&
-        other.orderId == orderId
+                other.orderId == orderId
 
     override fun hashCode(): Int = orderId
 
@@ -226,10 +229,13 @@ class OrderTask private constructor(order: OrderEntity, private val scheduler: O
             totalDishes += orderedCount
             repeat(orderedCount) {
                 dishesTasks.add(
-                    DishTask.createTask(dishTaskOrderUniqueId = nextDishTaskUniqueId(),
-                                                    dishId = dishId,
-                                                    cookTime = cookTime,
-                                                    orderTask = this))
+                    DishTask.createTask(
+                        dishTaskOrderUniqueId = nextDishTaskUniqueId(),
+                        dishId = dishId,
+                        cookTime = cookTime,
+                        orderTask = this
+                    )
+                )
             }
         }
         totalDishesCount.getAndAdd(totalDishes)

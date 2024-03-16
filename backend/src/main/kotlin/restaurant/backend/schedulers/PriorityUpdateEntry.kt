@@ -1,7 +1,6 @@
 package restaurant.backend.schedulers
 
-class PriorityUpdateEntry(var lastTimeUpdatedMillis: Long, val dishTask: DishTask)
-    : Comparable<PriorityUpdateEntry> {
+class PriorityUpdateEntry(var lastTimeUpdatedMillis: Long, val dishTask: DishTask) : Comparable<PriorityUpdateEntry> {
     override fun compareTo(other: PriorityUpdateEntry): Int {
         return lastTimeUpdatedMillis.compareTo(other.lastTimeUpdatedMillis)
     }

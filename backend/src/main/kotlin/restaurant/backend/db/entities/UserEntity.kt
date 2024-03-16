@@ -8,7 +8,7 @@ import java.util.*
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
-data class UserEntity (
+data class UserEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -27,7 +27,7 @@ data class UserEntity (
     val role: Role,
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
-    val orders: MutableList<OrderEntity> = mutableListOf()
+    val orders: MutableList<OrderEntity> = mutableListOf(),
 ) {
     override fun toString(): String {
         return "UserEntity(userId=$userId,login=$login,passwordHash=$passwordHash,role=$role,orders=${orders.size})"

@@ -2,7 +2,7 @@ package restaurant.backend.dto
 
 import org.springframework.security.core.GrantedAuthority
 
-enum class Role: GrantedAuthority {
+enum class Role : GrantedAuthority {
     USER,
     ADMIN;
 

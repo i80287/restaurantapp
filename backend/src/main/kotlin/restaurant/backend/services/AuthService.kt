@@ -18,7 +18,8 @@ import java.util.concurrent.ConcurrentHashMap
 class AuthService @Autowired constructor(
     private val userRepository: UserRepository,
     private val jwtProvider: JwtProvider,
-    private val passwordEncoder: PasswordEncoder) :
+    private val passwordEncoder: PasswordEncoder,
+) :
     LoggingHelper<AuthService>(AuthService::class.java) {
     private final val refreshStorage = ConcurrentHashMap<String, String>()
 
@@ -34,7 +35,7 @@ class AuthService @Autowired constructor(
 
         throw AuthException("Incorrect password")
     }
-    
+
     @Throws(AuthException::class)
     fun getAccessToken(refreshToken: String): JwtResponse {
         if (jwtProvider.validateRefreshToken(refreshToken)) {
@@ -73,5 +74,5 @@ class AuthService @Autowired constructor(
     @Throws(AuthException::class)
     private final fun retrieveUserOrThrow(login: String): UserEntity =
         userRepository.findByLogin(login)
-                ?: throw AuthException("User $login not found")
+            ?: throw AuthException("User $login not found")
 }

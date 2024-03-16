@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor
 @Entity
 @Table(name = "orders")
 @NoArgsConstructor
-data class OrderEntity (
+data class OrderEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false, fetch = FetchType.EAGER)
@@ -25,12 +25,12 @@ data class OrderEntity (
     @Column(name = "is_ready", nullable = false, updatable = true)
     var isReady: Boolean = false,
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "order")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
     val dishes: MutableList<OrderDishEntity> = mutableListOf(),
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
-    var user: UserEntity? = null
+    var user: UserEntity? = null,
 ) {
     override fun toString(): String {
         return "OrderEntity(orderId=$orderId,userId=$userId,startTime=$startTime,startedCooking=$startedCooking,isReady=$isReady,dishes=${dishes.size},user=${user})"

@@ -10,18 +10,12 @@ import lombok.RequiredArgsConstructor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import org.springframework.util.StringUtils
 import org.springframework.web.filter.GenericFilterBean
-import restaurant.backend.services.JwtUtils
 import restaurant.backend.domain.JwtAuthentication
+import restaurant.backend.domain.JwtUtils
 import restaurant.backend.services.JwtProvider
 import java.io.IOException
 
-// import javax.servlet.FilterChain
-// import javax.servlet.ServletException
-// import javax.servlet.ServletRequest
-// import javax.servlet.ServletResponse
-// import javax.servlet.http.HttpServletRequest
 
 @Component
 @RequiredArgsConstructor

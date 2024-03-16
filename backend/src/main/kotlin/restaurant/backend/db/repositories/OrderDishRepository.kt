@@ -12,13 +12,17 @@ import restaurant.backend.db.entities.OrderDishEntity
 interface OrderDishRepository : JpaRepository<OrderDishEntity, Long> {
     @Transactional
     @Modifying
-    @Query(value = "DELETE FROM order_dishes WHERE order_id = :orderId",
-           nativeQuery = true)
+    @Query(
+        value = "DELETE FROM order_dishes WHERE order_id = :orderId",
+        nativeQuery = true
+    )
     fun deleteOrderDishesByOrderId(@Param("orderId") orderId: Int)
 
     @Transactional
     @Modifying
-    @Query(value = "DELETE FROM order_dishes WHERE order_id = :orderId AND dish_id = :dishId",
-           nativeQuery = true)
+    @Query(
+        value = "DELETE FROM order_dishes WHERE order_id = :orderId AND dish_id = :dishId",
+        nativeQuery = true
+    )
     fun deleteOrderDishByOrderIdAndDishId(@Param("orderId") orderId: Int, @Param("dishId") dishId: Int)
 }

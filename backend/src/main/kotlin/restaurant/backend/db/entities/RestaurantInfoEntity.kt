@@ -14,5 +14,5 @@ data class RestaurantInfoEntity(
     val key: String,
     @Basic(optional = false)
     @Column(name = "value", nullable = false)
-    val value: Long
+    val value: Long,
 )

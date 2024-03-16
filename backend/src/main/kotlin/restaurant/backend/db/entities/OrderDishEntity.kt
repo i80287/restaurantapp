@@ -2,13 +2,11 @@ package restaurant.backend.db.entities
 
 import jakarta.persistence.*
 import lombok.NoArgsConstructor
-import org.hibernate.annotations.OnDelete
-import org.hibernate.annotations.OnDeleteAction
 
 @Entity
 @Table(name = "order_dishes")
 @NoArgsConstructor
-data class OrderDishEntity (
+data class OrderDishEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false, fetch = FetchType.EAGER)

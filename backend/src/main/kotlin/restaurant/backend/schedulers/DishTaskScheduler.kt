@@ -49,7 +49,7 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
         }
         dishTasks.removeAll(tasksHashSet)
     }
-    
+
     private fun createPriorityUpdateThread(): Thread {
         val thread = object : Thread() {
             override fun run() = runBlocking {
@@ -97,24 +97,28 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             }
 
             private fun printTimeUpdateMessage(dishTask: DishTask, timePassed: Long) {
-                println("""
+                println(
+                    """
                     PRIORITY UPDATE SCHEDULER MESSAGE: peeked task
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
                         Priority: ${dishTask.priority}
                         Passed time since last update: $timePassed ms
-                    """.trimIndent())
+                    """.trimIndent()
+                )
             }
 
             private fun printPriorityUpdateMessage(dishTask: DishTask) {
-                println("""
+                println(
+                    """
                     PRIORITY UPDATE SCHEDULER MESSAGE: updating priority
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
                         Priority: ${dishTask.priority}
-                        """.trimIndent())
+                        """.trimIndent()
+                )
             }
         }
 
@@ -146,23 +150,27 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             }
 
             private fun printDishStartedCooking(dishTask: DishTask) {
-                println("""
+                println(
+                    """
                     DISH COOKING SCHEDULER MESSAGE: started cooking dish
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
                         Priority: ${dishTask.priority}
-                        """.trimIndent())
+                        """.trimIndent()
+                )
             }
 
             private fun printDishEndedCooking(dishTask: DishTask) {
-                println("""
+                println(
+                    """
                     DISH COOKING SCHEDULER MESSAGE: ended cooking dish
                         Task id: ${dishTask.dishId}
                         Order id: ${dishTask.orderTask.orderId}
                         Unique id: ${dishTask.dishTaskOrderUniqueId}
                         Priority: ${dishTask.priority}
-                        """.trimIndent())
+                        """.trimIndent()
+                )
             }
         }
         thread.start()
@@ -175,7 +183,10 @@ class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::cl
             dishTask.increasePriority()
             dishTasksQueue.offer(dishTask)
         } else {
-            logInfo("Priority update: task not found in the dishTasksQueue", "DishTaskScheduler::updateDishTaskPriority(DishTask)")
+            logInfo(
+                "Priority update: task not found in the dishTasksQueue",
+                "DishTaskScheduler::updateDishTaskPriority(DishTask)"
+            )
         }
     }
 

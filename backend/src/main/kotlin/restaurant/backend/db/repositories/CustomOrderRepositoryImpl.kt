@@ -51,7 +51,8 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
                     UPDATE dishes SET quantity = quantity - tmprow.ordered_count WHERE dish_id = tmprow.dish_id;
                 END LOOP;
                 END; $$;
-                """.trimIndent()).executeUpdate()
+                """.trimIndent()
+            ).executeUpdate()
         return entityManager.find(OrderEntity::class.java, orderId)
     }
 
@@ -70,7 +71,8 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
                 VALUES ($orderId, $dishId, $addingCount)
                 ON CONFLICT DO UPDATE SET ordered_count = ordered_count + excluded.adding_count;
                 UPDATE orders SET is_ready = FALSE WHERE order_id = $orderId;
-                """.trimIndent())
+                """.trimIndent()
+            )
             .executeUpdate()
     }
 
@@ -84,7 +86,8 @@ open class CustomOrderRepositoryImpl(@Autowired private val entityManager: Entit
         val orderDishEntity: OrderDishWeakEntity = try {
             entityManager.createNativeQuery(
                 "SELECT * FROM order_dishes WHERE order_id = $orderId AND dish_id = $dishId;",
-                OrderDishWeakEntity::class.java)
+                OrderDishWeakEntity::class.java
+            )
                 .singleResult as OrderDishWeakEntity
         } catch (ex: Throwable) {
             return false

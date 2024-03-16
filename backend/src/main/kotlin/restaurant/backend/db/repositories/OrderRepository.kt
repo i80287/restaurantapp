@@ -11,14 +11,20 @@ import restaurant.backend.db.entities.OrderEntity
 @Repository
 interface OrderRepository : JpaRepository<OrderEntity, Int>, CustomOrderRepository {
     @Modifying
-    @Query(value = "UPDATE orders SET is_ready = TRUE WHERE order_id = :orderId",
-           nativeQuery = true)
+    @Query(
+        value = "UPDATE orders SET is_ready = TRUE WHERE order_id = :orderId",
+        nativeQuery = true
+    )
     fun setOrderReady(@Param("orderId") orderId: Int)
 
     @Modifying
-    @Query(value = "UPDATE orders SET started_cooking = TRUE WHERE order_id = :orderId",
-           nativeQuery = true)
+    @Query(
+        value = "UPDATE orders SET started_cooking = TRUE WHERE order_id = :orderId",
+        nativeQuery = true
+    )
     fun setOrderStartedCooking(@Param("orderId") orderId: Int)
 
     fun findAllByOrderByOrderIdAsc(): List<OrderEntity>
+
+    fun findAllByUserIdOrderByOrderIdAsc(userId: Int): List<OrderEntity>
 }

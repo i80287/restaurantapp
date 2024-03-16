@@ -41,22 +41,38 @@ class OrderScheduler(private val orderService: OrderService) :
     }
 
     suspend fun addDishesToOrder(dishEntity: DishEntity, orderAddDishDto: OrderAddDishDto) {
-        val orderTask: OrderTask = cookingOrders[orderAddDishDto.orderId]!!
+        val orderId = orderAddDishDto.orderId
+        val orderTask: OrderTask? = cookingOrders[orderId]
+        if (orderTask == null) {
+            logError(
+                "Order task with id $orderId not found",
+                "OrderScheduler::addDishesToOrder(DishEntity,OrderAddDishDto)"
+            )
+            return
+        }
         val newDishTasks: ArrayList<DishTask> = orderTask.addDishes(dishEntity, orderAddDishDto.addingCount)
         dishTaskScheduler.addAll(newDishTasks)
     }
 
     suspend fun cancelDishes(orderDeleteDishDto: OrderDeleteDishDto) {
-        cookingOrders[orderDeleteDishDto.orderId]!!
-            .cancelDishes(orderDeleteDishDto.dishId, orderDeleteDishDto.deletingCount)
+        val orderId = orderDeleteDishDto.orderId
+        val orderTask: OrderTask? = cookingOrders[orderId]
+        if (orderTask == null) {
+            logError("Order task with id $orderId not found", "OrderScheduler::cancelDishes(OrderDeleteDishDto)")
+            return
+        }
+        orderTask.cancelDishes(orderDeleteDishDto.dishId, orderDeleteDishDto.deletingCount)
     }
 
-    suspend fun deleteOrder(orderId: Int): Boolean {
-        val orderTask: OrderTask = cookingOrders.remove(orderId) ?: return false
+    suspend fun deleteOrder(orderId: Int) {
+        val orderTask: OrderTask? = cookingOrders.remove(orderId)
+        if (orderTask == null) {
+            logError("Order task with id $orderId not found", "OrderScheduler::deleteOrder(int)")
+            return
+        }
         dishTaskScheduler.removeAll(orderTask.dishesTasks)
         orderTask.cancelOrder()
         orderTask.unlock()
-        return true
     }
 
     suspend fun onOrderReady(orderTask: OrderTask) {

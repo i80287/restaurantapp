@@ -7,5 +7,5 @@ import java.util.UUID
 class PasswordEncoder {
     final fun encode(password: String): UUID {
         return UUID.nameUUIDFromBytes(password.toByteArray(Charsets.UTF_8))
-    } 
+    }
 }

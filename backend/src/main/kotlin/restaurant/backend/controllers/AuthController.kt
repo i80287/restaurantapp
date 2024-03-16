@@ -22,7 +22,7 @@ class AuthController(@Autowired private val authService: AuthService) {
     }
 
     @PostMapping("/token")
-    fun getNewAccessToken(@RequestBody request: RefreshJwtRequest) : ResponseEntity<JwtResponse> = try {
+    fun getNewAccessToken(@RequestBody request: RefreshJwtRequest): ResponseEntity<JwtResponse> = try {
         ResponseEntity.ok(authService.getAccessToken(request.refreshToken))
     } catch (ex: Throwable) {
         ResponseEntity.badRequest().header(ex.toString()).build()
