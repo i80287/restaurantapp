@@ -5,5 +5,6 @@ enum class LoginResponseStatus {
     FORBIDDEN,
     INCORRECT_LOGIN_OR_PASSWORD,
     SERVER_IS_NOT_RUNNING,
+    CONNECTION_RESET,
     UNKNOWN
 }

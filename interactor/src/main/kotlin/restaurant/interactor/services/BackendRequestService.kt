@@ -12,6 +12,7 @@ import restaurant.interactor.domain.JwtRequest
 import restaurant.interactor.domain.JwtResponse
 import restaurant.interactor.domain.RefreshJwtRequest
 import restaurant.interactor.dto.*
+import kotlin.properties.Delegates
 
 @Service
 class BackendRequestService(webClientBuilder: WebClient.Builder) {
@@ -23,9 +24,10 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
     private final lateinit var cachedRefreshToken: String
     private final lateinit var cachedLogin: String
     private final lateinit var cachedPassword: String
+    private final var cachedUserId by Delegates.notNull<Int>()
 
     final fun loginUser(login: String, password: String): LoginResponseStatus {
-        try {
+        return try {
             val response: JwtResponse = webClient
                 .post()
                 .uri("auth/login")
@@ -37,24 +39,23 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             assert(response.type == "Bearer")
             cachedAccessToken = response.accessToken!!
             cachedRefreshToken = response.refreshToken!!
+            cachedUserId = response.userId!!
             cachedLogin = login
             cachedPassword = password
-            return LoginResponseStatus.OK
+            LoginResponseStatus.OK
         } catch (badReqEx: WebClientResponseException.BadRequest) {
-            return LoginResponseStatus.INCORRECT_LOGIN_OR_PASSWORD
+            LoginResponseStatus.INCORRECT_LOGIN_OR_PASSWORD
         } catch (forbEx: WebClientResponseException.Forbidden) {
-            return LoginResponseStatus.FORBIDDEN
+            LoginResponseStatus.FORBIDDEN
         } catch (reqEx: WebClientRequestException) {
-            if (isServerNotRunningOrUnreachable(reqEx)) {
-                return LoginResponseStatus.SERVER_IS_NOT_RUNNING
-            }
-            print("BackendRequestService::loginUser(): 1\n")
+            println("debug print in BackendRequestService::loginUser(): 1")
             println(reqEx)
+            statusFromWebClientRequestException(reqEx)
         } catch (ex: Throwable) {
-            print("BackendRequestService::loginUser(): 2\n")
+            println("debug print in BackendRequestService::loginUser(): 2")
             println(ex)
+            LoginResponseStatus.UNKNOWN
         }
-        return LoginResponseStatus.UNKNOWN
     }
 
     final fun addDish(dishName: String, quantity: Int, cookTimeInMilliseconds: Long, price: Int): String =
@@ -76,27 +77,96 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
         updateDishComponent(UpdateDishPriceDto(dishName, newPrice), "price")
 
     final fun updateDishCookTime(dishName: String, newCookTime: Long): String =
-        updateDishComponent(UpdateDishCookTimeDto(dishName, newCookTime), "price")
+        updateDishComponent(UpdateDishCookTimeDto(dishName, newCookTime), "cooktime")
 
     final fun updateDishQuantity(dishName: String, newQuantity: Int): String =
-        updateDishComponent(UpdateDishQuantityDto(dishName, newQuantity), "price")
+        updateDishComponent(UpdateDishQuantityDto(dishName, newQuantity), "quantity")
 
     final fun updateDishName(dishName: String, newName: String): String =
-        updateDishComponent(UpdateDishNameDto(dishName, newName), "price")
+        updateDishComponent(UpdateDishNameDto(dishName, newName), "name")
 
-    final fun getAllUsers(): Array<UserDto>? {
-        val (userList, errorMessage) = makeRequestHandleTokensUpdate {
+    final fun getAllUsers(): Pair<Array<UserDto>?, String> =
+        makeRequestHandleTokensUpdate {
             getListWithEmptyBody<UserDto>("users/get/all")
         }
-        if (userList == null) {
-            println(errorMessage)
+
+    final fun getUserById(userId: Int): Pair<UserDto?, String> =
+        makeRequestHandleTokensUpdate {
+            getWithEmptyBody("users/get/byid/$userId")
         }
-        return userList
-    }
+
+    final fun getUserByLogin(userLogin: String): Pair<UserDto?, String> =
+        makeRequestHandleTokensUpdate {
+            getWithEmptyBody("users/get/bylogin/$userLogin")
+        }
+
+    final fun addUser(userLogin: String, userPassword: String, userRole: Role): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while adding the user") {
+            postWithJsonBody(UserDto(userId = null, login = userLogin, password = userPassword, role = userRole), "users/add")
+        }
+
+    final fun deleteUserById(userId: Int): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while deleting the user") {
+            deleteWithEmptyBody("users/delete/byid/$userId")
+        }
+
+    final fun deleteUserByLogin(userLogin: String): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while deleting the user") {
+            deleteWithEmptyBody("users/delete/bylogin/$userLogin")
+        }
+
+    final fun forceDeleteOrderById(orderId: Int): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while deleting the order") {
+            deleteWithEmptyBody("orders/admin/delete/byid/$orderId")
+        }
+
+    final fun getAllOrders(): Pair<Array<OrderDto>?, String> =
+        makeRequestHandleTokensUpdate {
+            getListWithEmptyBody<OrderDto>("orders/get/all")
+        }
+
+    final fun getOrderById(orderId: Int): Pair<OrderDto?, String> =
+        makeRequestHandleTokensUpdate {
+            getWithEmptyBody("orders/get/byid/$orderId")
+        }
+
+    final fun getAllDishes(): Pair<Array<DishDto>?, String> =
+        makeRequestHandleTokensUpdate {
+            getListWithEmptyBody<DishDto>("dishes/get/all")
+        }
+
+    final fun getLoggedInUserOrders(): Pair<Array<OrderDto>?, String> =
+        makeRequestHandleTokensUpdate {
+            getListWithEmptyBody<OrderDto>("orders/get/userorders/byid/${getThisUserId()}")
+        }
+
+    final fun getThisUserId(): Int = cachedUserId
+
+    final fun addOrder(userId: Int, dishIdsWithCounts: ArrayList<OrderDishDto>): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while creating order") {
+            postWithJsonBody(OrderDto(orderOwnerId = userId, orderDishes = dishIdsWithCounts),
+                             "/orders/add")
+        }
+
+    final fun addDishToOrder(orderId: Int, dishId: Int, addingCount: Int): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while adding $addingCount dish[es] with id $dishId to the order with id $orderId") {
+            postWithJsonBody(OrderAddDishDto(orderId, dishId, addingCount), "orders/add/dish")
+        }
+
+
+    final fun deleteDishFromOrder(orderId: Int, dishId: Int, deletingCount: Int): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while deleting $deletingCount dish[es] with id $dishId to the order with id $orderId") {
+            postWithJsonBody(OrderDeleteDishDto(orderId, dishId, deletingCount), "orders/delete/dish")
+        }
+
+    final fun deleteLoggedInUserOrderById(orderId: Int): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while deleting the order") {
+            deleteWithEmptyBody("orders/delete/byid/$orderId")
+        }
 
     private final inline fun <reified UpdateDtoType : Any> updateDishComponent(newDtoObject: UpdateDtoType, componentName: String): String =
         makeRequestHandleTokensUpdate("Unknown error occured while updating dish's $componentName") {
-            patchWithJsonBody(newDtoObject, "/dishes/update/$componentName")
+            postWithJsonBody<UpdateDtoType, String>(newDtoObject, "dishes/update/$componentName")
         }
 
     private final fun updateTokens(): String? {
@@ -115,13 +185,9 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
         } catch (ex: WebClientResponseException.Forbidden) {
             "Access to the resource denied"
         } catch (exBadReq: WebClientResponseException.BadRequest) {
-            "Both access and refresh tokens are expired and could not be updated"
-        } catch (ex: WebClientRequestException) {
-            if (isServerNotRunningOrUnreachable(ex)) {
-                "Server is not active or unreachable"
-            } else {
-                "Unknown error occured while updating access token"
-            }
+            "Both access and refresh tokens are expired and could not be updated. Please, relogin"
+        } catch (reqEx: WebClientRequestException) {
+            explainWebClientRequestException(reqEx) ?: "Unknown error occured while updating access token"
         } catch (ex: Throwable) {
             "Unknown error occured while updating access token"
         }
@@ -136,7 +202,18 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             .headers { headers: HttpHeaders -> headers.setBearerAuth(cachedAccessToken) }
             .retrieve()
             .bodyToMono(object : ParameterizedTypeReference<Array<ResponseType>>() {})
-            .log()
+            .block()!!
+    }
+
+    private final inline fun <reified  ResponseType : Any> getWithEmptyBody(uri: String): ResponseType {
+        assert(!uri.startsWith('/'))
+        return webClient
+            .get()
+            .uri(uri)
+            .accept(MediaType.APPLICATION_JSON)
+            .headers { headers: HttpHeaders -> headers.setBearerAuth(cachedAccessToken) }
+            .retrieve()
+            .bodyToMono(ResponseType::class.java)
             .block()!!
     }
 
@@ -164,20 +241,22 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             .block()!!
     }
 
-    private final inline fun <reified UpdateDtoType : Any, reified ResponseType : Any> patchWithJsonBody(newDtoObject: UpdateDtoType, uri: String): ResponseType {
-        assert(!uri.startsWith('/'))
-        return webClient
-            .post()
-            .uri(uri)
-            .headers { headers: HttpHeaders -> headers.setBearerAuth(cachedAccessToken) }
-            .retrieve()
-            .bodyToMono(ResponseType::class.java)
-            .block()!!
-    }
+    private final fun explainWebClientRequestException(ex: WebClientRequestException): String? =
+        when (statusFromWebClientRequestException(ex)) {
+            LoginResponseStatus.SERVER_IS_NOT_RUNNING -> "Server is not active or unreachable"
+            LoginResponseStatus.CONNECTION_RESET -> "Connection reset by the server"
+            else -> null
+        }
 
-    private final fun isServerNotRunningOrUnreachable(ex: WebClientRequestException): Boolean {
-        val message = ex.message
-        return message != null && message.startsWith("Connection refused")
+    private final fun statusFromWebClientRequestException(ex: WebClientRequestException): LoginResponseStatus {
+        val message = ex.message ?: return LoginResponseStatus.UNKNOWN
+        if (message.startsWith("Connection refused")) {
+            return LoginResponseStatus.SERVER_IS_NOT_RUNNING
+        }
+        if (message.startsWith("Connection reset")) {
+            return LoginResponseStatus.CONNECTION_RESET
+        }
+        return LoginResponseStatus.UNKNOWN
     }
 
     private final inline fun makeRequestHandleTokensUpdate(defaultErrorMessage: String, requestBlock: () -> String): String {
@@ -192,14 +271,15 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
                 }
                 return "Access to the resource denied"
             } catch (fbEx: WebClientResponseException.BadRequest) {
-                return fbEx.responseBodyAsString
+                return "Bad request. Server answer:\n - ${fbEx.responseBodyAsString}"
+            } catch (mnaEx: WebClientResponseException.MethodNotAllowed) {
+                return "Implementation error, API mismatch: method not allowed. Server answer:\n - ${mnaEx.localizedMessage}"
             } catch (reqEx: WebClientRequestException) {
-                if (isServerNotRunningOrUnreachable(reqEx))
-                    return "Server is not active or unreachable"
-                print("BackendRequestService::makeRequestHandleTokensUpdate(String,() -> String)")
+                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(String,() -> String) 1")
                 println(reqEx)
+                return explainWebClientRequestException(reqEx) ?: defaultErrorMessage
             } catch (ex: Throwable) {
-                print("BackendRequestService::makeRequestHandleTokensUpdate(String,() -> String)")
+                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(String,() -> String) 2")
                 println(ex)
             }
             return defaultErrorMessage
@@ -218,17 +298,16 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
                 } else {
                     "Access to the resource denied"
                 }
+            } catch (notFoundEx: WebClientResponseException.NotFound) {
+                "Not found"
             } catch (fbEx: WebClientResponseException.BadRequest) {
                 fbEx.responseBodyAsString
             } catch (reqEx: WebClientRequestException) {
-                print("BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType)")
+                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType) 1")
                 println(reqEx)
-                if (isServerNotRunningOrUnreachable(reqEx))
-                    "Server is not active or unreachable"
-                else
-                    "Unknown error"
+                explainWebClientRequestException(reqEx) ?: "Unknown error"
             } catch (ex: Throwable) {
-                print("BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType)")
+                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType) 2")
                 println(ex)
                 "Unknown error"
             }

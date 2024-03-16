@@ -14,30 +14,42 @@ class InteractorApplication(@Autowired private val service: BackendRequestServic
     private val commandExecutor = CommandExecutor(service, interactor)
 
     override fun run(vararg args: String?) {
-        if (!interactor.loginOrRegisterUser()) {
-            commandExecutor.exit()
-            return
-        }
+        var reloginRequested = false
+        do {
+            if (!interactor.loginOrRegisterUser())
+                break
+            reloginRequested = startExecutingCommands()
+        } while (reloginRequested)
+        commandExecutor.exit()
+    }
 
+    private final fun startExecutingCommands(): Boolean {
         while (true) {
             when (interactor.nextCommand()) {
                 UserInteractor.UserCommand.AddDish -> commandExecutor.addDish()
-                UserInteractor.UserCommand.RemoveDish -> commandExecutor.removeDish()
+                UserInteractor.UserCommand.DeleteDishByName -> commandExecutor.deleteDishByName()
                 UserInteractor.UserCommand.UpdateDishPrice -> commandExecutor.updateDishPrice()
                 UserInteractor.UserCommand.UpdateDishQuantity -> commandExecutor.updateDishQuantity()
                 UserInteractor.UserCommand.UpdateDishCookTime -> commandExecutor.updateDishCookTime()
                 UserInteractor.UserCommand.UpdateDishName -> commandExecutor.updateDishName()
                 UserInteractor.UserCommand.GetAllUsers -> commandExecutor.getAllUsers()
-                //            UserInteractor.UserCommand.MakeOrder -> commandExecutor.makeOrder()
-                //            UserInteractor.UserCommand.AddDishToOrder -> commandExecutor.addDishToOrder()
-                //            UserInteractor.UserCommand.RemoveDishFromOrder -> commandExecutor.removeDishFromOrder()
-                //            UserInteractor.UserCommand.GetOrderInfo -> commandExecutor.getOrderInfo()
-                //            UserInteractor.UserCommand.PayForTheOrder -> commandExecutor.payForTheOrder()
-                UserInteractor.UserCommand.Exit -> {
-                    commandExecutor.exit()
-                    return
-                }
-                else -> { }
+                UserInteractor.UserCommand.GetUserById -> commandExecutor.getUserById()
+                UserInteractor.UserCommand.GetUserByLogin -> commandExecutor.getUserByLogin()
+                UserInteractor.UserCommand.AddUser -> commandExecutor.addUser()
+                UserInteractor.UserCommand.DeleteUserById -> commandExecutor.deleteUserById()
+                UserInteractor.UserCommand.DeleteUserByLogin -> commandExecutor.deleteUserByLogin()
+                UserInteractor.UserCommand.GetAllOrders -> commandExecutor.getAllOrders()
+                UserInteractor.UserCommand.GetOrderById -> commandExecutor.getOrderById()
+                UserInteractor.UserCommand.DeleteOrderById -> commandExecutor.forceDeleteOrderById()
+                UserInteractor.UserCommand.GetAllDishes -> commandExecutor.getAllDishes()
+                UserInteractor.UserCommand.GetLoggedInUserOrders -> commandExecutor.getLoggedInUserOrders()
+                UserInteractor.UserCommand.AddOrder -> commandExecutor.addOrder()
+                UserInteractor.UserCommand.AddDishToOrder -> commandExecutor.addDishToOrder()
+                UserInteractor.UserCommand.RemoveDishFromOrder -> commandExecutor.deleteDishFromOrder()
+                UserInteractor.UserCommand.PayForTheOrder -> TODO() // commandExecutor.payForTheOrder()
+                UserInteractor.UserCommand.DeleteLoggedInUserOrder -> commandExecutor.deleteLoggedInUserOrder()
+                UserInteractor.UserCommand.Relogin -> return true
+                UserInteractor.UserCommand.Exit -> return false
             }
         }
     }

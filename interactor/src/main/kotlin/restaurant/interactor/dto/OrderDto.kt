@@ -6,5 +6,5 @@ data class OrderDto(
     val startTime: Long? = null,
     val isReady: Boolean = false,
     val startedCooking: Boolean = false,
-    val orderDishes: HashSet<OrderDishDto> = HashSet()
+    val orderDishes: MutableList<OrderDishDto> = mutableListOf()
 )

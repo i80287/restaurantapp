@@ -57,6 +57,10 @@ tasks.withType<KotlinCompile> {
 	}
 }
 
+tasks.withType<JavaExec> {
+	standardInput = System.`in`
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
