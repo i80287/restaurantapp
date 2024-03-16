@@ -11,7 +11,7 @@ import java.util.PriorityQueue
 import java.util.concurrent.PriorityBlockingQueue
 
 private const val PRIORITY_UPDATE_CYCLE_TIMEOUT_MILLISECONDS = 6_000L
-private const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 24_000L
+private const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 36_000L
 private const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
 private const val TASK_SCHEDULER_DEBUG_PRINTING: Boolean = false
 
