@@ -1,10 +1,10 @@
 package restaurant.interactor.util
 
 import restaurant.interactor.dto.OrderDishDto
-import restaurant.interactor.dtoformatters.kt.UserDtoFormatter
+import restaurant.interactor.dtoformatters.UserDtoFormatter
 import restaurant.interactor.dto.Role
-import restaurant.interactor.dtoformatters.kt.DishDtoFormatter
-import restaurant.interactor.dtoformatters.kt.OrderDtoFormatter
+import restaurant.interactor.dtoformatters.DishDtoFormatter
+import restaurant.interactor.dtoformatters.OrderDtoFormatter
 import restaurant.interactor.services.BackendRequestService
 
 private const val NEW_DISH_MIN_QUANTITY = 1

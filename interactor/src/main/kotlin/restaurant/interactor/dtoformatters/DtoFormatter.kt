@@ -1,4 +1,4 @@
-package restaurant.interactor.dtoformatters.kt
+package restaurant.interactor.dtoformatters
 
 abstract class DtoFormatter {
     protected fun appendTableLine(sb: StringBuilder, vararg columsDataAndLen: Pair<String, Int>) {

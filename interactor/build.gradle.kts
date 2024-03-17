@@ -44,10 +44,6 @@ dependencies {
 	implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("io.projectreactor:reactor-test")
-	testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
-	testImplementation("org.springframework.security:spring-security-test")
 }
 
 tasks.withType<KotlinCompile> {
@@ -59,17 +55,4 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<JavaExec> {
 	standardInput = System.`in`
-}
-
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
-
-tasks.test {
-	outputs.dir(project.extra["snippetsDir"]!!)
-}
-
-tasks.asciidoctor {
-	inputs.dir(project.extra["snippetsDir"]!!)
-	dependsOn(tasks.test)
 }

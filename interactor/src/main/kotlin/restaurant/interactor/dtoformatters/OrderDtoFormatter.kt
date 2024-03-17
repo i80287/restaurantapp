@@ -1,4 +1,4 @@
-package restaurant.interactor.dtoformatters.kt
+package restaurant.interactor.dtoformatters
 
 import restaurant.interactor.dto.OrderDto
 import kotlin.math.max

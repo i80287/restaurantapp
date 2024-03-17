@@ -4,10 +4,8 @@ import jakarta.persistence.EntityManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.transaction.annotation.Transactional
-import restaurant.backend.db.entities.DishEntity
 import restaurant.backend.db.entities.OrderDishWeakEntity
 import restaurant.backend.db.entities.OrderEntity
-import restaurant.backend.db.repositories.CustomOrderRepository
 import restaurant.backend.dto.OrderAddDishDto
 import restaurant.backend.dto.OrderDeleteDishDto
 import restaurant.backend.dto.OrderDishDto

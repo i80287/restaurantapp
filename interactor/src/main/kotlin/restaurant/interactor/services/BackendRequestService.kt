@@ -50,12 +50,8 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
         } catch (forbEx: WebClientResponseException.ServiceUnavailable) {
             LoginResponseStatus.SERVER_IS_NOT_RUNNING_OR_UNAVAILABLE
         } catch (reqEx: WebClientRequestException) {
-            println("debug print in BackendRequestService::loginUser(): 1")
-            println(reqEx)
             statusFromWebClientRequestException(reqEx)
-        } catch (ex: Throwable) {
-            println("debug print in BackendRequestService::loginUser(): 2")
-            println(ex)
+        } catch (_: Throwable) {
             LoginResponseStatus.UNKNOWN
         }
     }
@@ -297,14 +293,10 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             } catch (forbEx: WebClientResponseException.ServiceUnavailable) {
                 return "Server is not running or unavailable"
             } catch (reqEx: WebClientRequestException) {
-                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(String,() -> String) 1")
-                println(reqEx)
                 return explainWebClientRequestException(reqEx) ?: defaultErrorMessage
-            } catch (ex: Throwable) {
-                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(String,() -> String) 2")
-                println(ex)
+            } catch (_: Throwable) {
+                return defaultErrorMessage
             }
-            return defaultErrorMessage
         }
     }
 
@@ -325,14 +317,10 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             } catch (fbEx: WebClientResponseException.BadRequest) {
                 "Bad request. Server answer:\n - ${fbEx.responseBodyAsString}"
             } catch (reqEx: WebClientRequestException) {
-                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType) 1")
-                println(reqEx)
                 explainWebClientRequestException(reqEx) ?: "Unknown error"
             } catch (forbEx: WebClientResponseException.ServiceUnavailable) {
                 "Server is not running or unavailable"
             } catch (ex: Throwable) {
-                println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType) 2")
-                println(ex)
                 "Unknown error"
             }
             return null to message
