@@ -14,7 +14,7 @@ class InteractorApplication(@Autowired private val service: BackendRequestServic
     private val commandExecutor = CommandExecutor(service, interactor)
 
     override fun run(vararg args: String?) {
-        var reloginRequested = false
+        var reloginRequested: Boolean
         do {
             if (!interactor.loginOrRegisterUser())
                 break
@@ -46,7 +46,7 @@ class InteractorApplication(@Autowired private val service: BackendRequestServic
                 UserInteractor.UserCommand.AddOrder -> commandExecutor.addOrder()
                 UserInteractor.UserCommand.AddDishToOrder -> commandExecutor.addDishToOrder()
                 UserInteractor.UserCommand.RemoveDishFromOrder -> commandExecutor.deleteDishFromOrder()
-                UserInteractor.UserCommand.PayForTheOrder -> TODO() // commandExecutor.payForTheOrder()
+                UserInteractor.UserCommand.PayForTheOrder -> commandExecutor.payForTheOrder()
                 UserInteractor.UserCommand.DeleteLoggedInUserOrder -> commandExecutor.deleteLoggedInUserOrder()
                 UserInteractor.UserCommand.Relogin -> return true
                 UserInteractor.UserCommand.Exit -> return false

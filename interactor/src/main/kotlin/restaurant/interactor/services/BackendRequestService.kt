@@ -47,6 +47,8 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             LoginResponseStatus.INCORRECT_LOGIN_OR_PASSWORD
         } catch (forbEx: WebClientResponseException.Forbidden) {
             LoginResponseStatus.FORBIDDEN
+        } catch (forbEx: WebClientResponseException.ServiceUnavailable) {
+            LoginResponseStatus.SERVER_IS_NOT_RUNNING_OR_UNAVAILABLE
         } catch (reqEx: WebClientRequestException) {
             println("debug print in BackendRequestService::loginUser(): 1")
             println(reqEx)
@@ -160,8 +162,13 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
         }
 
     final fun deleteLoggedInUserOrderById(orderId: Int): String =
-        makeRequestHandleTokensUpdate("Unknown error occured while deleting the order") {
+        makeRequestHandleTokensUpdate("Unknown error occured while deleting the order with id $orderId") {
             deleteWithEmptyBody("orders/delete/byid/$orderId")
+        }
+
+    final fun payForTheOrder(orderId: Int): String =
+        makeRequestHandleTokensUpdate("Unknown error occured while paying for the order with id $orderId") {
+            postWithEmptyBody("orders/pay/byid/$orderId")
         }
 
     private final inline fun <reified UpdateDtoType : Any> updateDishComponent(newDtoObject: UpdateDtoType, componentName: String): String =
@@ -186,6 +193,8 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             "Access to the resource denied"
         } catch (exBadReq: WebClientResponseException.BadRequest) {
             "Both access and refresh tokens are expired and could not be updated. Please, relogin"
+        } catch (forbEx: WebClientResponseException.ServiceUnavailable) {
+            "Server is not running or unavailable"
         } catch (reqEx: WebClientRequestException) {
             explainWebClientRequestException(reqEx) ?: "Unknown error occured while updating access token"
         } catch (ex: Throwable) {
@@ -230,6 +239,17 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             .block()!!
     }
 
+    private final inline fun <reified ResponseType : Any> postWithEmptyBody(uri: String): ResponseType {
+        assert(!uri.startsWith('/'))
+        return webClient
+            .post()
+            .uri(uri)
+            .headers { headers: HttpHeaders -> headers.setBearerAuth(cachedAccessToken) }
+            .retrieve()
+            .bodyToMono(ResponseType::class.java)
+            .block()!!
+    }
+
     private final inline fun <reified ResponseType : Any> deleteWithEmptyBody(uri: String): ResponseType {
         assert(!uri.startsWith('/'))
         return webClient
@@ -243,7 +263,7 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
 
     private final fun explainWebClientRequestException(ex: WebClientRequestException): String? =
         when (statusFromWebClientRequestException(ex)) {
-            LoginResponseStatus.SERVER_IS_NOT_RUNNING -> "Server is not active or unreachable"
+            LoginResponseStatus.SERVER_IS_NOT_RUNNING_OR_UNAVAILABLE -> "Server is not active or unreachable"
             LoginResponseStatus.CONNECTION_RESET -> "Connection reset by the server"
             else -> null
         }
@@ -251,7 +271,7 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
     private final fun statusFromWebClientRequestException(ex: WebClientRequestException): LoginResponseStatus {
         val message = ex.message ?: return LoginResponseStatus.UNKNOWN
         if (message.startsWith("Connection refused")) {
-            return LoginResponseStatus.SERVER_IS_NOT_RUNNING
+            return LoginResponseStatus.SERVER_IS_NOT_RUNNING_OR_UNAVAILABLE
         }
         if (message.startsWith("Connection reset")) {
             return LoginResponseStatus.CONNECTION_RESET
@@ -274,6 +294,8 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
                 return "Bad request. Server answer:\n - ${fbEx.responseBodyAsString}"
             } catch (mnaEx: WebClientResponseException.MethodNotAllowed) {
                 return "Implementation error, API mismatch: method not allowed. Server answer:\n - ${mnaEx.localizedMessage}"
+            } catch (forbEx: WebClientResponseException.ServiceUnavailable) {
+                return "Server is not running or unavailable"
             } catch (reqEx: WebClientRequestException) {
                 println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(String,() -> String) 1")
                 println(reqEx)
@@ -301,11 +323,13 @@ class BackendRequestService(webClientBuilder: WebClient.Builder) {
             } catch (notFoundEx: WebClientResponseException.NotFound) {
                 "Not found"
             } catch (fbEx: WebClientResponseException.BadRequest) {
-                fbEx.responseBodyAsString
+                "Bad request. Server answer:\n - ${fbEx.responseBodyAsString}"
             } catch (reqEx: WebClientRequestException) {
                 println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType) 1")
                 println(reqEx)
                 explainWebClientRequestException(reqEx) ?: "Unknown error"
+            } catch (forbEx: WebClientResponseException.ServiceUnavailable) {
+                "Server is not running or unavailable"
             } catch (ex: Throwable) {
                 println("debug print in BackendRequestService::makeRequestHandleTokensUpdate(() -> ReturnType) 2")
                 println(ex)

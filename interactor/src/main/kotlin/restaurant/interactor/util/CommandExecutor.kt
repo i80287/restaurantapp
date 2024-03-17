@@ -163,6 +163,15 @@ class CommandExecutor(private val service: BackendRequestService, private val in
         interactor.notify(response)
     }
 
+    fun payForTheOrder() {
+        // Should we really do this?
+        interactor.requestPositiveInt("Enter card number")
+
+        val orderId = requestExistingOrderId()
+        val response = service.payForTheOrder(orderId)
+        interactor.notify(response)
+    }
+
     fun deleteLoggedInUserOrder() {
         val orderId = requestExistingOrderId()
         val response = service.deleteLoggedInUserOrderById(orderId)

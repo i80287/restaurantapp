@@ -2,40 +2,27 @@ package restaurant.interactor.util
 
 import restaurant.interactor.services.BackendRequestService
 import restaurant.interactor.services.LoginResponseStatus
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 class UserInteractor(private val service: BackendRequestService) {
     companion object {
-        private const val NEXT_COMMAND_PROMPT: String =
-            "Write number of the option you want to peek:\n" +
-            "   Admin options:\n" +
-            "     1. Add new dish to the restaurant menu\n" +
-            "     2. Delete dish by name from the restaurant menu\n" +
-            "     3. Update price of the dish\n" +
-            "     4. Update quantity of the dish in the restaurant menu\n" +
-            "     5. Update cook time of the dish\n" +
-            "     6. Update name of the dish\n" +
-            "     7. Show all users\n" +
-            "     8. Get user by id\n" +
-            "     9. Get user by login\n" +
-            "     10. Add user\n" +
-            "     11. Delete user by id\n" +
-            "     12. Delete user by login\n" +
-            "     13. Show all orders\n" +
-            "     14. Get order by id\n" +
-            "     15. Delete order by id\n" +
-            "   User options:\n" +
-            "     16. Show all dishes\n" +
-            "     17. Show this user orders\n" +
-            "     18. Make new order\n" +
-            "     19. Add dish to the order\n" +
-            "     20. Remove dish from the order\n" +
-            "     21. Pay for the order\n" +
-            "     22. Delete this user order\n" +
-            "     23. Relogin\n" +
-            "     24. Exit\n" +
-            "> "
+        private const val NEXT_COMMAND_PROMPT: String = """
+Admin options:                                             User options:
+   1. Add new dish to the restaurant menu                     16. Show all dishes
+   2. Delete dish by name from the restaurant menu            17. Show this user orders
+   3. Update price of the dish                                18. Make new order
+   4. Update quantity of the dish in the restaurant menu      19. Add dish to the order
+   5. Update cook time of the dish                            20. Remove dish from the order
+   6. Update name of the dish                                 21. Pay for the order
+   7. Show all users                                          22. Delete this user order
+   8. Get user by id                                          23. Relogin
+   9. Get user by login                                       24. Exit
+   10. Add user
+   11. Delete user by id
+   12. Delete user by login
+   13. Show all orders
+   14. Get order by id
+   15. Delete order by id
+> """
     }
 
     private enum class UserState {
@@ -114,14 +101,12 @@ class UserInteractor(private val service: BackendRequestService) {
                 23 -> UserCommand.Relogin
                 24 -> UserCommand.Exit
                 else -> {
-                    println("Unknown option, expected number between 1 and 23. Please, try again")
+                    println("Unknown option, expected number between 1 and 24. Please, try again")
                     continue
                 }
             }
         }
     }
-
-    fun notifyExit() = notify("Exit requested by user")
 
     fun requestPositiveInt(prompt: String): Int = requestIntAtLeast(1, prompt)
 
@@ -240,15 +225,11 @@ class UserInteractor(private val service: BackendRequestService) {
         }
     }
 
-    private fun requestDate(prompt: String): LocalDateTime? {
-        val date: String =
-            requestNonBlankString("$prompt\n(in format yyyy-MM-dd HH:mm:ss, for example, 2023-01-31 20:30:45)")
-        return try {
-            LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-        } catch (ex: Exception) {
-            null
-        }
-    }
+    fun notify(prompt: String) = println(prompt)
+
+    fun notifyExit() = notify("Exit requested by user")
+
+    private fun notifySignedIn() = notify("Signed in successfully")
 
     private fun signInUser(): UserState {
         while (true) {
@@ -281,17 +262,13 @@ class UserInteractor(private val service: BackendRequestService) {
         val errorMessage = when (status) {
             LoginResponseStatus.OK -> return true
             LoginResponseStatus.FORBIDDEN, LoginResponseStatus.INCORRECT_LOGIN_OR_PASSWORD -> "Incorrect login or password"
-            LoginResponseStatus.SERVER_IS_NOT_RUNNING -> "Server is not running or not available"
+            LoginResponseStatus.SERVER_IS_NOT_RUNNING_OR_UNAVAILABLE -> "Server is not running or not available"
             LoginResponseStatus.CONNECTION_RESET -> "Connection reset by the server"
             LoginResponseStatus.UNKNOWN -> "Unknown error"
         }
         notify(errorMessage)
         return false
     }
-
-    fun notify(prompt: String) = println(prompt)
-
-    private fun notifySignedIn() = notify("Signed in successfully")
 
     private fun printFlushed(message: String) {
         print(message)

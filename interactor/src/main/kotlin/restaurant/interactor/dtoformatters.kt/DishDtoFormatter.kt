@@ -10,16 +10,14 @@ private const val COOK_TIME_COLUMN_NAME = "cook time (in seconds)"
 private const val PRICE_COLUMN_NAME = "price"
 
 class DishDtoFormatter(dishes: Array<DishDto>) : DtoFormatter() {
-    constructor(dish: DishDto) : this(arrayOf(dish))
-
     val stringTable = createTable(dishes)
 
     private fun createTable(dishes: Array<DishDto>): String {
-        var maxIdLen: Int = 0
-        var maxNameLen: Int = 0
-        var maxQuantityLen: Int = 0
-        var maxCookTimeLen: Int = 0
-        var maxPriceLen: Int = 0
+        var maxIdLen = 0
+        var maxNameLen = 0
+        var maxQuantityLen = 0
+        var maxCookTimeLen = 0
+        var maxPriceLen = 0
 
         for (dish in dishes) {
             maxIdLen = max(maxIdLen, dish.dishId!!.toString().length)

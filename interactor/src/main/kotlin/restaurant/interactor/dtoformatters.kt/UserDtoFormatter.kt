@@ -14,10 +14,10 @@ class UserDtoFormatter(users: Array<UserDto>) : DtoFormatter() {
     val stringTable: String = createTable(users)
 
     private fun createTable(users: Array<UserDto>): String {
-        var maxIdLen: Int = 0
-        var maxLoginLen: Int = 0
-        var maxRoleLen: Int = 0
-        var maxOrdersCountLen: Int = 0
+        var maxIdLen = 0
+        var maxLoginLen = 0
+        var maxRoleLen = 0
+        var maxOrdersCountLen = 0
         for (user in users) {
             maxIdLen = max(maxIdLen, user.userId!!.toString().length)
             maxLoginLen = max(maxLoginLen, user.login.length)

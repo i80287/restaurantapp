@@ -17,13 +17,13 @@ class OrderDtoFormatter(orders: Array<OrderDto>) : DtoFormatter() {
     val stringTable = createTable(orders)
 
     private fun createTable(orders: Array<OrderDto>): String {
-        var maxIdLen: Int = 0
-        var maxOwnerIdLen: Int = 0
-        var maxStartTimeLen: Int = 0
+        var maxIdLen = 0
+        var maxOwnerIdLen = 0
+        var maxStartTimeLen = 0
         val maxIsReadyLen: Int = false.toString().length
         val maxStartedCookingLen: Int = false.toString().length
-        var maxDishIdLen: Int = 0
-        var maxOrderedCountLen: Int = 0
+        var maxDishIdLen = 0
+        var maxOrderedCountLen = 0
         var totalDataRows = 0
 
         for (order in orders) {
