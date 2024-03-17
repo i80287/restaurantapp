@@ -1,0 +1,25 @@
+services:
+  postgres:
+    container_name: "restaurantdb-container"
+    image: postgres:16.1-alpine3.18
+    environment:
+      POSTGRES_DB: "restaurantdb"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./src/main/resources/sql:/docker-entrypoint-initdb.d
+      - restaurantdb-data:/var/lib/postgresql/data
+    ports:
+      - "6432:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d restaurantdb"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  restaurantdb-data:
