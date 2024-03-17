@@ -54,31 +54,29 @@ class OrderTask private constructor(order: OrderEntity, private val scheduler: O
         stateUpdatingMutex.unlock()
     }
 
-    suspend fun addDishes(dish: DishEntity, addingCount: Int): ArrayList<DishTask> {
+    fun addDishes(dish: DishEntity, addingCount: Int): ArrayList<DishTask> {
         throwIfCancelled()
         throwIfSendingReadySignal()
         throwIfNotLocked()
         assert(addingCount > 0)
-        stateUpdatingMutex.withLock {
-            // Prevent ready() from being true while adding new dishes
-            totalDishesCount.getAndAdd(addingCount)
-            val dishId: Int = dish.dishId!!
-            val cookTime: Long = dish.cookTime
-            val newDishesTasks = ArrayList<DishTask>(addingCount)
-            repeat(addingCount) {
-                newDishesTasks.add(
-                    DishTask.createTask(
-                        dishTaskOrderUniqueId = nextDishTaskUniqueId(),
-                        dishId = dishId,
-                        cookTime = cookTime,
-                        orderTask = this
-                    )
+        // Prevent ready() from being true while adding new dishes
+        totalDishesCount.getAndAdd(addingCount)
+        val dishId: Int = dish.dishId!!
+        val cookTime: Long = dish.cookTime
+        val newDishesTasks = ArrayList<DishTask>(addingCount)
+        repeat(addingCount) {
+            newDishesTasks.add(
+                DishTask.createTask(
+                    dishTaskOrderUniqueId = nextDishTaskUniqueId(),
+                    dishId = dishId,
+                    cookTime = cookTime,
+                    orderTask = this
                 )
-            }
-            dishesTasks.addAll(newDishesTasks)
-            assert(dishesTasks.size == totalDishesCount())
-            return newDishesTasks
+            )
         }
+        dishesTasks.addAll(newDishesTasks)
+        assert(dishesTasks.size == totalDishesCount())
+        return newDishesTasks
     }
 
     suspend fun onDishStartedCooking(dishTask: DishTask, cookingJob: Job) {

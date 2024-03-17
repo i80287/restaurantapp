@@ -44,7 +44,7 @@ class OrderService @Autowired constructor(
             if (verifyUserHasThisId(issuerLogin, userId))
                 return orderRepository.findAllByUserIdOrderByOrderIdAsc(userId).map { order: OrderEntity -> OrderDto(order) }
         } catch (ex: Throwable) {
-            logError("OrderService::retrieveAllUserOrders(int)", ex)
+            logError("OrderService::retrieveAllUserOrders(int,String)", ex)
         }
         return null
     }
@@ -151,10 +151,13 @@ class OrderService @Autowired constructor(
             orderScheduler.addDishesToOrder(dishEntity, orderAddDishDto)
             true to "Added $addingCount dishes with id $dishId and name ${dishEntity.name}"
         } catch (ex: UnsupportedOperationException) {
-            logError("OrderService::addDishToOrder(OrderAddDishDto)", ex)
+            logError("OrderService::addDishToOrder(OrderAddDishDto,String)", ex)
             false to "Can't add dish to the ready order"
+        } catch (ex: org.springframework.web.context.request.async.AsyncRequestTimeoutException) {
+            logError("OrderService::addDishToOrder(OrderAddDishDto,String)", ex)
+            false to "Can't add dith to the order. Sorry, internal server error"
         } catch (ex: Throwable) {
-            logDebugOnIncorrectData(orderAddDishDto, "OrderService::addDishToOrder(OrderAddDishDto)", ex)
+            logDebugOnIncorrectData(orderAddDishDto, "OrderService::addDishToOrder(OrderAddDishDto,String)", ex)
             false to "Can't add dish: incorrect data provided"
         } finally {
             orderScheduler.unlockOrder(orderId)
@@ -189,12 +192,12 @@ class OrderService @Autowired constructor(
             orderScheduler.cancelDishes(orderDeleteDishDto)
             true to "Deleted $deletingCount dishes"
         } catch (ex: UnsupportedOperationException) {
-            logError("OrderService::deleteDishFromOrder(OrderDeleteDishDto)", ex)
+            logError("OrderService::deleteDishFromOrder(OrderDeleteDishDto,String)", ex)
             false to "Can't delete dish from the ready order"
         } catch (ex: Throwable) {
             logDebugOnIncorrectData(
                 orderDeleteDishDto,
-                "OrderService::deleteDishFromOrder(OrderDeleteDishDto)",
+                "OrderService::deleteDishFromOrder(OrderDeleteDishDto,String)",
                 ex
             )
             false to "Can't delete dish from the order: incorrect data"
@@ -213,7 +216,7 @@ class OrderService @Autowired constructor(
             orderRepository.onReadyOrderPaid(orderId)
             return PaidOrderStatus.OK
         } catch (ex: Throwable) {
-            logError("(id=$orderId)", "OrderService::onPaidOrder(PaidOrderDto)", ex)
+            logError("(orderId=$orderId)", "OrderService::onPaidOrder(int)", ex)
             return PaidOrderStatus.OTHER_ERROR
         }
     }

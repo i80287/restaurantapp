@@ -10,10 +10,10 @@ import restaurant.backend.util.LoggingHelper
 import java.util.PriorityQueue
 import java.util.concurrent.PriorityBlockingQueue
 
-private const val PRIORITY_UPDATE_CYCLE_TIMEOUT_MILLISECONDS = 6_000L
-private const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 36_000L
+private const val PRIORITY_UPDATE_CYCLE_TIMEOUT_MILLISECONDS = 12_000L
+private const val PRIORITY_UPDATE_TIMEOUT_MILLISECONDS = 72_000L
 private const val MAX_COOKING_DISHES_PER_ONE_TIME: Int = 4
-private const val TASK_SCHEDULER_DEBUG_PRINTING: Boolean = false
+private const val TASK_SCHEDULER_DEBUG_PRINTING: Boolean = true
 
 class DishTaskScheduler : LoggingHelper<DishTaskScheduler>(DishTaskScheduler::class.java) {
     private val priorityUpdateStateLock: Mutex = Mutex()
